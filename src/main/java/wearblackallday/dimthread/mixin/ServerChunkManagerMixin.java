@@ -33,24 +33,4 @@ public abstract class ServerChunkManagerMixin extends ChunkManager implements IM
 	public void setMainThread(Thread thread) {
 		this.serverThread = thread;
 	}
-
-	@Inject(method = "getTotalChunksLoadedCount", at = @At("HEAD"), cancellable = true)
-	private void getTotalChunksLoadedCount(CallbackInfoReturnable<Integer> ci) {
-		if(FabricLoader.getInstance().isDevelopmentEnvironment()) {
-			int count = this.threadedAnvilChunkStorage.getTotalChunksLoadedCount();
-			if(count < 441)ci.setReturnValue(441);
-		}
-	}
-
-	@Redirect(method = "getChunk(IILnet/minecraft/world/chunk/ChunkStatus;Z)Lnet/minecraft/world/chunk/Chunk;", at = @At(value = "INVOKE", target = "Ljava/lang/Thread;currentThread()Ljava/lang/Thread;"))
-	public Thread currentThread(int x, int z, ChunkStatus leastStatus, boolean create) {
-		Thread thread = Thread.currentThread();
-
-		if(DimThread.MANAGER.isActive(this.world.getServer()) && DimThread.owns(thread)) {
-			return this.serverThread;
-		}
-
-		return thread;
-	}
-
 }
