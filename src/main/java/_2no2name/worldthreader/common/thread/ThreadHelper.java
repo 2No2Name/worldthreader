@@ -27,7 +27,7 @@ public class ThreadHelper {
 
 
     /**
-     * Makes it easy to understand what is happening in crash reports and helps identify dimthread workers.
+     * Makes it easy to understand what is happening in crash reports and helps identify worker threads.
      */
     public static void attach(Thread thread, String name) {
         thread.setName(WorldThreaderMod.MOD_ID + "_" + name);

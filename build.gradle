@@ -22,9 +22,6 @@ repositories {
 }
 
 dependencies {
-    implementation "com.github.wearblackallday:JavaUtils:bd58640372"
-    include"com.github.wearblackallday:JavaUtils:bd58640372"
-
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
@@ -39,7 +36,7 @@ dependencies {
 
 loom {
     accessWidenerPath = file("src/main/resources/worldthreader.accesswidener")
-    mixin.defaultRefmapName = "dimthread.refmap.json"
+    mixin.defaultRefmapName = "worldthreader.refmap.json"
 }
 
 processResources {
