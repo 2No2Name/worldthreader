@@ -33,7 +33,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
     private void acquireSingleThreadedWorldAccess() {
         if (this.isTickMultithreaded()) {
             WorldThreadingManager worldThreadingManager = Objects.requireNonNull(this.getWorldThreadingManager());
-            worldThreadingManager.waitForExclusiveWorldAccess(Thread.currentThread());
+            worldThreadingManager.waitForExclusiveWorldAccess();
         }
     }
 

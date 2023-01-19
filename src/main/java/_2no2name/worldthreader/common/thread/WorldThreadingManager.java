@@ -26,9 +26,6 @@ public class WorldThreadingManager {
 	//This variable is only modified by the owner of the permit from the semaphore (using the semaphore like a mutex)
 	private final AtomicReference<Thread> threadWithExclusiveWorldAccess = new AtomicReference<>(null);
 
-
-	private final AtomicReference<Thread> threadWaitingForExclusiveWorldAccess = new AtomicReference<>(null);
-
 	private boolean isMultiThreadedPhase = false;
 
 
@@ -90,7 +87,19 @@ public class WorldThreadingManager {
 		return phaser.awaitAdvance(phase);
 	}
 
-	public void waitForExclusiveWorldAccess(Thread currentThread) {
+	/**
+	 * For some reason the current thread (current ticking its world) wants to access another world.
+	 * To guarantee some level of thread-safety, we need to wait until the thread of the other world is not modifying
+	 * its world - meaning that it ran into a barrier or also entered this function.
+	 * <p>
+	 * Once exclusive world access is ensured, we can proceed. Releasing the exclusive world access is not possible
+	 * until this thread runs into a barrier, because we cannot know for how long the thread is going to access the worlds.
+	 * <p>
+	 * Assumptions:
+	 * After each barrier the threads will no longer access the other worlds until this function is called again.
+	 */
+	public void waitForExclusiveWorldAccess() {
+		Thread currentThread = Thread.currentThread();
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
 		if (thread == currentThread) {
 			return;
@@ -102,7 +111,10 @@ public class WorldThreadingManager {
 			LockSupport.unpark(thread);
 		}
 
+		//If multiple threads try to acquire exclusive world access, all but one will block here
 		this.exclusiveWorldAccessLock.acquireUninterruptibly();
+
+
 		this.threadWithExclusiveWorldAccess.set(currentThread);
 
 		while (true) {
@@ -111,6 +123,7 @@ public class WorldThreadingManager {
 				//Now we have exclusive world access.
 				return;
 			} else {
+				//Use parking instead of spinlocking for performance reasons
 				LockSupport.park(this);
 			}
 		}
