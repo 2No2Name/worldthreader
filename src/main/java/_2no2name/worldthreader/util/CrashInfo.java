@@ -1,9 +1,10 @@
-package wearblackallday.dimthread.util;
+package _2no2name.worldthreader.util;
 
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 
+@Deprecated
 public record CrashInfo(ServerWorld world, Throwable throwable) {
 
 	public void crash(String title) {

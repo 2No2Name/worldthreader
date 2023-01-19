@@ -1,4 +1,4 @@
-package wearblackallday.dimthread.mixin;
+package _2no2name.worldthreader.mixin.threading_compatibility;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.RedstoneWireBlock;
@@ -21,19 +21,23 @@ import java.util.Map;
 
 @Mixin(RedstoneWireBlock.class)
 public abstract class RedstoneWireBlockMixin {
-
-	@Shadow @Final public static IntProperty POWER;
-	@Shadow @Final public static Map<Direction, EnumProperty<WireConnection>> DIRECTION_TO_WIRE_CONNECTION_PROPERTY;
-
-	@Shadow protected abstract BlockState method_27840(BlockView world, BlockState state, BlockPos pos);
-
+	//TODO copy the redstone wire code from lithium or similar instead, since this makes redstone threadsafe without usage of threadlocal. Make sure to consider the license
+	@Shadow
+	@Final
+	public static IntProperty POWER;
+	@Shadow
+	@Final
+	public static Map<Direction, EnumProperty<WireConnection>> DIRECTION_TO_WIRE_CONNECTION_PROPERTY;
 	/**
 	 * {@code RedstoneWireBlock#wiresGivePower} is not thread-safe since it's a global flag. To ensure
 	 * no interference between threads the field is replaced with this thread local one.
 	 *
 	 * @see RedstoneWireBlock#emitsRedstonePower(BlockState)
-	 * */
+	 */
 	private final ThreadLocal<Boolean> wiresGivePowerSafe = ThreadLocal.withInitial(() -> true);
+
+	@Shadow
+	private native BlockState getPlacementState(BlockView world, BlockState state, BlockPos pos);
 
 	@Inject(method = "getReceivedRedstonePower", at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/World;getReceivedRedstonePower(Lnet/minecraft/util/math/BlockPos;)I",
@@ -73,13 +77,13 @@ public abstract class RedstoneWireBlockMixin {
 	 */
 	@Overwrite
 	public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-		if(!this.wiresGivePowerSafe.get() || direction == Direction.DOWN) {
+		if (!this.wiresGivePowerSafe.get() || direction == Direction.DOWN) {
 			return 0;
 		}
 
 		int i = state.get(POWER);
-		if(i == 0)return 0;
-		return direction != Direction.UP && !this.method_27840(world, state, pos)
+		if (i == 0) return 0;
+		return direction != Direction.UP && !this.getPlacementState(world, state, pos)
 				.get(DIRECTION_TO_WIRE_CONNECTION_PROPERTY.get(direction.getOpposite())).isConnected() ? 0 : i;
 	}
 

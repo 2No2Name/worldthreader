@@ -1,21 +1,20 @@
 {
   "schemaVersion": 1,
-  "id": "dimthread",
+  "id": "worldthreader",
   "version": "${version}",
   "name": "DimensionalThreading",
   "description": "An attempt to optimize the fabric server, by assigning each dimension their own thread.",
   "license": "MIT",
-  "icon": "assets/dimthread/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "wearblackallday.dimthread.DimThread"
+      "_2no2name.worldthreader.WorldThreaderMod"
     ]
   },
   "mixins": [
-    "dimthread.mixins.json"
+    "worldthreader.mixins.json"
   ],
-  "accessWidener": "dimthread.accesswidener",
+  "accessWidener": "worldthreader.accesswidener",
   "depends": {
     "fabricloader": ">=0.12.8",
     "minecraft": ">=1.19"

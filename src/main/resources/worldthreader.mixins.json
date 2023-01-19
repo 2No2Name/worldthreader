@@ -1,0 +1,22 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "_2no2name.worldthreader.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "core.MinecraftServerMixin",
+    "core.ServerWorldMixin",
+    "dimension_change.EntityMixin",
+    "dimension_change.ItemEntityMixin",
+    "exclusive_world_access.EntityMixin",
+    "exclusive_world_access.MinecraftServerMixin",
+    "thread_ownership.ServerChunkManagerMixin",
+    "thread_ownership.WorldMixin",
+    "threading_compatibility.RedstoneWireBlockMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,6 +1,6 @@
-package wearblackallday.dimthread.gamerule;
+package _2no2name.worldthreader.gamerule;
 
-import wearblackallday.dimthread.DimThread;
+import _2no2name.worldthreader.WorldThreaderMod;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.minecraft.world.GameRules;
 
@@ -10,7 +10,7 @@ public abstract class GameRule<T extends GameRules.Rule<T>> {
 	private final GameRules.Type<T> rule;
 
 	public GameRule(String name, GameRules.Category category, GameRules.Type<T> rule) {
-		this.key = GameRuleRegistry.register(DimThread.MOD_ID + "_" + name, category, rule);
+		this.key = GameRuleRegistry.register(WorldThreaderMod.MOD_ID + "_" + name, category, rule);
 		this.rule = rule;
 	}
 

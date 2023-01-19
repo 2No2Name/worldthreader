@@ -38,7 +38,7 @@ dependencies {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/dimthread.accesswidener")
+    accessWidenerPath = file("src/main/resources/worldthreader.accesswidener")
     mixin.defaultRefmapName = "dimthread.refmap.json"
 }
 
