@@ -72,4 +72,12 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
     private void avoidParallelWorldAccess3(CallbackInfoReturnable<ServerWorld> cir) {
         this.acquireSingleThreadedWorldAccess();
     }
+
+    @Inject(
+            method = {"getDataPackManager", "getScoreboard", "getDataCommandStorage", "getBossBarManager", "getCommandFunctionManager"},
+            at = @At("HEAD")
+    )
+    private void avoidParallelServerDataAccess(CallbackInfoReturnable<ServerWorld> cir) {
+        this.acquireSingleThreadedWorldAccess();
+    }
 }
