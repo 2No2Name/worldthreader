@@ -8,6 +8,8 @@
     "core.ServerWorldMixin",
     "dimension_change.EntityMixin",
     "dimension_change.ItemEntityMixin",
+    "entity_id_wireless_redstone_fix.EntityMixin",
+    "entity_id_wireless_redstone_fix.ServerWorldMixin",
     "exclusive_world_access.EntityMixin",
     "exclusive_world_access.MinecraftServerMixin",
     "profiler.ServerWorldMixin",
