@@ -3,6 +3,8 @@ package _2no2name.worldthreader.mixin.exclusive_world_access;
 import _2no2name.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import _2no2name.worldthreader.common.thread.WorldThreadingManager;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.registry.RegistryKey;
@@ -25,9 +27,18 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
     @Final
     private Map<RegistryKey<World>, ServerWorld> worlds;
 
+    @Shadow
+    @Final
+    private ServerScoreboard scoreboard;
+
     @Override
     public ServerWorld getWorldUnsynchronized(RegistryKey<World> key) {
         return this.worlds.get(key);
+    }
+
+    @Override
+    public Scoreboard getScoreboardUnsynchronized() {
+        return this.scoreboard;
     }
 
     private void acquireSingleThreadedWorldAccess() {
