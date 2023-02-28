@@ -1,9 +1,11 @@
 package _2no2name.worldthreader.mixin.dimension_change;
 
+import _2no2name.worldthreader.common.ServerWorldTicking;
 import _2no2name.worldthreader.common.dimension_change.TeleportedEntityInfo;
 import _2no2name.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import _2no2name.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import _2no2name.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
+import _2no2name.worldthreader.init.ModGameRules;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -22,7 +24,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -101,6 +103,7 @@ public abstract class EntityMixin implements EntityExtended {
 	 * To prevent this the relative position in the source nether portal is calculated on departure and stored in the TeleportedEntityInfo.
 	 * On arrival the precalculated values are used instead of accessing the source world.
 	 */
+	@SuppressWarnings("UnresolvedMixinReference")
 	@Redirect(
 			method = "method_30331(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/BlockLocating$Rectangle;)Lnet/minecraft/world/TeleportTarget;",
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;")
@@ -119,13 +122,15 @@ public abstract class EntityMixin implements EntityExtended {
 	 * To prevent this the relative position in the source nether portal is calculated on departure and stored in the TeleportedEntityInfo.
 	 * On arrival the precalculated values are used instead of accessing the source world.
 	 */
-	@ModifyVariable(
+	@SuppressWarnings("UnresolvedMixinReference")
+	@ModifyArg(
+			index = 2,
 			method = "method_30331(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/BlockLocating$Rectangle;)Lnet/minecraft/world/TeleportTarget;",
-			at = @At(value = "INVOKE", shift = At.Shift.BEFORE, target = "Lnet/minecraft/world/dimension/AreaHelper;getNetherTeleportTarget(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/BlockLocating$Rectangle;Lnet/minecraft/util/math/Direction$Axis;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/EntityDimensions;Lnet/minecraft/util/math/Vec3d;FF)Lnet/minecraft/world/TeleportTarget;")
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/dimension/NetherPortal;getNetherTeleportTarget(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/BlockLocating$Rectangle;Lnet/minecraft/util/math/Direction$Axis;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/Vec3d;FF)Lnet/minecraft/world/TeleportTarget;")
 	)
-	private Direction.Axis restorePortalAxis(Direction.Axis axis, ServerWorld destination) {
+	private Direction.Axis restorePortalAxis(ServerWorld destination, BlockLocating.Rectangle portalRect, Direction.Axis portalAxis, Vec3d offset, Entity entity, Vec3d velocity, float yaw, float pitch) {
 		if (!((MinecraftServerExtended) Objects.requireNonNull(this.world.getServer())).isTickMultithreaded()) {
-			return axis;
+			return portalAxis;
 		}
 		TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).getCurrentlyArrivingEntityInfo();
 		return currentlyArrivingEntity.portalAxis();
@@ -137,11 +142,13 @@ public abstract class EntityMixin implements EntityExtended {
 	 * To prevent this the relative position in the source nether portal is calculated on departure and stored in the TeleportedEntityInfo.
 	 * On arrival the precalculated values are used instead of accessing the source world.
 	 */
-	@ModifyVariable(
+	@SuppressWarnings("UnresolvedMixinReference")
+	@ModifyArg(
+			index = 3,
 			method = "method_30331(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/BlockLocating$Rectangle;)Lnet/minecraft/world/TeleportTarget;",
-			at = @At(value = "INVOKE", shift = At.Shift.BEFORE, target = "Lnet/minecraft/world/dimension/AreaHelper;getNetherTeleportTarget(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/BlockLocating$Rectangle;Lnet/minecraft/util/math/Direction$Axis;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/EntityDimensions;Lnet/minecraft/util/math/Vec3d;FF)Lnet/minecraft/world/TeleportTarget;")
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/dimension/NetherPortal;getNetherTeleportTarget(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/BlockLocating$Rectangle;Lnet/minecraft/util/math/Direction$Axis;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/Vec3d;FF)Lnet/minecraft/world/TeleportTarget;")
 	)
-	private Vec3d restoreInPortalPos(Vec3d inPortalPos, ServerWorld destination) {
+	private Vec3d restoreInPortalPos(ServerWorld destination, BlockLocating.Rectangle portalRect, Direction.Axis portalAxis, Vec3d inPortalPos, Entity entity, Vec3d velocity, float yaw, float pitch) {
 		if (!((MinecraftServerExtended) Objects.requireNonNull(this.world.getServer())).isTickMultithreaded()) {
 			return inPortalPos;
 		}
@@ -176,6 +183,10 @@ public abstract class EntityMixin implements EntityExtended {
 
 		if (entity != null) {
 			((EntityExtended) entity).onArrivedInWorld();
+		}
+
+		if (entity != null && ModGameRules.SHOULD_TICK_ENTITY_AFTER_TELEPORT && ServerWorldTicking.isMainWorld(destination)) {
+			entity.tick();
 		}
 	}
 

@@ -16,7 +16,14 @@
     "profiler.ServerWorldMixin",
     "thread_ownership.ServerChunkManagerMixin",
     "thread_ownership.WorldMixin",
-    "threading_compatibility.RedstoneWireBlockMixin"
+    "threading_compatibility.RedstoneWireBlockMixin",
+    "threadsafe_scoreboard.ScoreboardAccess",
+    "threadsafe_scoreboard.ScoreboardCommandMixin",
+    "threadsafe_scoreboard.ScoreboardMixin",
+    "threadsafe_scoreboard.ScoreboardObjectiveMixin",
+    "threadsafe_scoreboard.ScoreboardPlayerScoreMixin",
+    "threadsafe_scoreboard.ServerScoreboardMixin",
+    "threadsafe_scoreboard.TeamMixin"
   ],
   "client": [
   ],

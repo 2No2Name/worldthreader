@@ -3,11 +3,10 @@ package _2no2name.worldthreader.mixin.exclusive_world_access;
 import _2no2name.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import _2no2name.worldthreader.common.thread.WorldThreadingManager;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
-import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -36,11 +35,6 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
         return this.worlds.get(key);
     }
 
-    @Override
-    public Scoreboard getScoreboardUnsynchronized() {
-        return this.scoreboard;
-    }
-
     private void acquireSingleThreadedWorldAccess() {
         if (this.isTickMultithreaded()) {
             WorldThreadingManager worldThreadingManager = Objects.requireNonNull(this.getWorldThreadingManager());
@@ -57,7 +51,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
     }
 
     @Inject(
-            method = "getWorld(Lnet/minecraft/util/registry/RegistryKey;)Lnet/minecraft/server/world/ServerWorld;",
+            method = "getWorld(Lnet/minecraft/registry/RegistryKey;)Lnet/minecraft/server/world/ServerWorld;",
             at = @At("HEAD")
     )
     private void avoidParallelWorldAccess2(RegistryKey<World> key, CallbackInfoReturnable<@Nullable ServerWorld> cir) {
@@ -85,7 +79,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
     }
 
     @Inject(
-            method = {"getDataPackManager", "getScoreboard", "getDataCommandStorage", "getBossBarManager", "getCommandFunctionManager"},
+            method = {"getDataPackManager", "getDataCommandStorage", "getBossBarManager", "getCommandFunctionManager"},
             at = @At("HEAD")
     )
     private void avoidParallelServerDataAccess(CallbackInfoReturnable<ServerWorld> cir) {

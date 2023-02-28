@@ -2,12 +2,12 @@ package _2no2name.worldthreader.mixin.profiler;
 
 import _2no2name.worldthreader.common.ServerWorldTicking;
 import _2no2name.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.profiler.DummyProfiler;
 import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.registry.RegistryEntry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.MutableWorldProperties;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;

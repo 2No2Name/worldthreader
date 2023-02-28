@@ -66,7 +66,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 
 	@Override
 	public boolean isTickMultithreaded() {
-		return this.worldThreadingManager != null && this.worldThreadingManager.isMultiThreadedPhase();
+		return this.isThreadingEnabled() && this.worldThreadingManager.isMultiThreadedPhase();
 	}
 
 	/**
