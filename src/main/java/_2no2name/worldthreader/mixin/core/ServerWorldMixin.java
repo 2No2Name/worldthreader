@@ -2,13 +2,12 @@ package _2no2name.worldthreader.mixin.core;
 
 
 import _2no2name.worldthreader.common.ServerWorldTicking;
+import _2no2name.worldthreader.common.dimension_change.DimensionChangeHelper;
 import _2no2name.worldthreader.common.dimension_change.TeleportedEntityInfo;
-import _2no2name.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import _2no2name.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import _2no2name.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
 import _2no2name.worldthreader.common.thread.WorldThreadingManager;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
@@ -26,12 +25,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
 
 @Mixin(ServerWorld.class)
 public abstract class ServerWorldMixin implements ServerWorldExtended {
 
-    private final Map<ServerWorld, ArrayList<TeleportedEntityInfo>> receivedEntities = new Reference2ReferenceOpenHashMap<>();
+    private final Map<ServerWorld, ArrayList<TeleportedEntityInfo>> receivedEntities = new ConcurrentHashMap<>();
+    private final Set<TeleportedEntityInfo> failedTeleports = new ConcurrentHashMap<TeleportedEntityInfo, Object>().keySet(new Object());
     private TeleportedEntityInfo currentlyArrivingEntity;
 
     @Shadow
@@ -55,10 +57,26 @@ public abstract class ServerWorldMixin implements ServerWorldExtended {
             if (teleportedEntityList != null) {
                 for (TeleportedEntityInfo teleportedEntity : teleportedEntityList) {
                     this.currentlyArrivingEntity = teleportedEntity;
-                    ((EntityExtended) teleportedEntity.staleEntityObject()).arriveInWorld(teleportedEntity.nbtCompound(), (ServerWorld) (Object) this);
+                    DimensionChangeHelper.arriveInWorld(teleportedEntity, teleportedEntity.staleEntityObject(), teleportedEntity.nbtCompound(), teleportedEntity.staleEntityObject().getType(), (ServerWorld) (Object) this, (ServerWorld) teleportedEntity.staleEntityObject().getWorld());
                     this.currentlyArrivingEntity = null;
                 }
             }
+        }
+    }
+
+    @Override
+    public void receiveFailedTeleport(TeleportedEntityInfo entity) {
+        this.failedTeleports.add(entity);
+    }
+
+
+    @Override
+    public void recoverFailedTeleports() {
+        if (!this.failedTeleports.isEmpty()) {
+            for (TeleportedEntityInfo teleportedEntity : this.failedTeleports) {
+                DimensionChangeHelper.restoreEntityInWorld(teleportedEntity);
+            }
+            this.failedTeleports.clear();
         }
     }
 

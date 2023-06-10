@@ -13,5 +13,10 @@ public interface ServerWorldExtended {
 
     void finishReceivingTeleportedEntities();
 
+    void receiveFailedTeleport(TeleportedEntityInfo entity);
+
+    void recoverFailedTeleports();
+
     TeleportedEntityInfo getCurrentlyArrivingEntityInfo();
+
 }

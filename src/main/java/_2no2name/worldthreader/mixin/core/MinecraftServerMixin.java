@@ -17,7 +17,7 @@ import java.util.Collections;
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 
-	private boolean shouldUseMultithreading = ModGameRules.INITIAL;
+	private boolean shouldUseMultithreading = ModGameRules.INITIAL_TRUE;
 	private WorldThreadingManager worldThreadingManager;
 
 	@Shadow

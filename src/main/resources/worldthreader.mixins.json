@@ -7,8 +7,10 @@
   "mixins": [
     "core.MinecraftServerMixin",
     "core.ServerWorldMixin",
+    "dimension_change.EntityAccessor",
     "dimension_change.EntityMixin",
     "dimension_change.ItemEntityMixin",
+    "dimension_change.MobEntityMixin",
     "entity_id_wireless_redstone_fix.EntityMixin",
     "entity_id_wireless_redstone_fix.ServerWorldMixin",
     "exclusive_world_access.EntityMixin",

@@ -1,15 +1,12 @@
 package _2no2name.worldthreader.mixin.dimension_change;
 
-import _2no2name.worldthreader.common.ServerWorldTicking;
 import _2no2name.worldthreader.common.dimension_change.TeleportedEntityInfo;
 import _2no2name.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import _2no2name.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import _2no2name.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
-import _2no2name.worldthreader.init.ModGameRules;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
@@ -17,9 +14,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockLocating;
-import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.border.WorldBorder;
+import org.slf4j.Logger;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,6 +27,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
+import java.util.Optional;
+
+import static _2no2name.worldthreader.init.ModGameRules.SHOULD_CREATE_NETHER_PORTALS_FOR_ALL_ENTITIES;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin implements EntityExtended {
@@ -46,13 +47,6 @@ public abstract class EntityMixin implements EntityExtended {
 	}
 
 	@Shadow
-	protected @Nullable
-	abstract TeleportTarget getTeleportTarget(ServerWorld destination);
-
-	@Shadow
-	public abstract EntityType<?> getType();
-
-	@Shadow
 	protected abstract void removeFromDimension();
 
 	@Shadow
@@ -60,6 +54,19 @@ public abstract class EntityMixin implements EntityExtended {
 
 	@Shadow
 	protected abstract Vec3d positionInPortal(Direction.Axis portalAxis, BlockLocating.Rectangle portalRect);
+
+	@Shadow
+	@Final
+	private static Logger LOGGER;
+
+	@Shadow
+	protected abstract Optional<BlockLocating.Rectangle> getPortalRect(ServerWorld destWorld, BlockPos destPos, boolean destIsNether, WorldBorder worldBorder);
+
+	@Shadow
+	public abstract World getWorld();
+
+	@Shadow
+	protected abstract void unsetRemoved();
 
 	//TODO this hides an inject from fabric-api (net.fabricmc.fabric.mixin.dimension.EntityMixin)
 	@Inject(
@@ -157,41 +164,36 @@ public abstract class EntityMixin implements EntityExtended {
 	}
 
 	@Override
-	public void arriveInWorld(NbtCompound entityNBT, ServerWorld destination) {
-		// [VanillaCopy] partial content of moveToWorld method
-
-		//This must be called from the thread of the destination world!
-		//Note: The instance "this" is the removed instance from the other world. DO NOT USE IT FOR ANYTHING UNLESS ABSOLUTELY REQUIRED AND SAFE
-		destination.getProfiler().push("reposition");
-		TeleportTarget teleportTarget = this.getTeleportTarget(destination);
-		if (teleportTarget == null) {
-			return;
-		}
-		destination.getProfiler().swap("reloading");
-		Entity entity = this.getType().create(destination);
-		if (entity != null) {
-			((EntityMixin) (Object) entity).copyFromNBT(entityNBT);
-			entity.refreshPositionAndAngles(teleportTarget.position.x, teleportTarget.position.y, teleportTarget.position.z, teleportTarget.yaw, entity.getPitch());
-			entity.setVelocity(teleportTarget.velocity);
-			destination.onDimensionChanged(entity);
-			if (destination.getRegistryKey() == World.END) {
-				ServerWorld.createEndSpawnPlatform(destination);
-			}
-		}
-		destination.resetIdleTimeout();
-		destination.getProfiler().pop();
-
-		if (entity != null) {
-			((EntityExtended) entity).onArrivedInWorld();
-		}
-
-		if (entity != null && ModGameRules.SHOULD_TICK_ENTITY_AFTER_TELEPORT && ServerWorldTicking.isMainWorld(destination)) {
-			entity.tick();
-		}
-	}
-
 	public void copyFromNBT(NbtCompound nbtCompound) {
 		this.readNbt(nbtCompound);
 		this.lastNetherPortalPosition = BlockPos.fromLong(nbtCompound.getLong("LastNetherPortalPosition"));
+	}
+
+	@Override
+	public void restoreEntity(TeleportedEntityInfo teleportedEntity) {
+		this.unsetRemoved();
+	}
+
+
+	@Redirect(
+			method = "getTeleportTarget",
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;getPortalRect(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;ZLnet/minecraft/world/border/WorldBorder;)Ljava/util/Optional;")
+	)
+	private Optional<BlockLocating.Rectangle> getOrCreateNetherPortal(Entity instance, ServerWorld destWorld, BlockPos destPos, boolean destIsNether, WorldBorder worldBorder) {
+		Optional<BlockLocating.Rectangle> portal = this.getPortalRect(destWorld, destPos, destIsNether, worldBorder);
+		if (portal.isPresent() || !SHOULD_CREATE_NETHER_PORTALS_FOR_ALL_ENTITIES || !((MinecraftServerExtended) destWorld.getServer()).isTickMultithreaded()) {
+			return portal;
+		}
+		//In the multithreaded case we have to find a teleport target location, because the entity is already
+		//removed from the source world. This is why portals are created when needed instead of failing to teleport.
+		//If this also fails, as a last resort, the entity will be sent back to the original position.
+		TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destWorld).getCurrentlyArrivingEntityInfo();
+		Direction.Axis axis = currentlyArrivingEntity.portalAxis();
+
+		portal = destWorld.getPortalForcer().createPortal(destPos, axis);
+		if (portal.isEmpty()) {
+			LOGGER.error("Unable to create a portal, likely target out of worldborder");
+		}
+		return portal;
 	}
 }

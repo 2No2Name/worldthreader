@@ -79,6 +79,8 @@ public class ServerWorldTicking {
 
             worldThreadingManager.withinTickBarrier();
             finishTeleportsToWorld(serverWorld);
+            worldThreadingManager.withinTickBarrier();
+            recoverFailedTeleports(serverWorld);
         } catch (Throwable throwable) {
             CrashReport crashReport = CrashReport.create(throwable, "Exception in server world thread");
             serverWorld.addDetailsToCrashReport(crashReport);
@@ -88,5 +90,9 @@ public class ServerWorldTicking {
 
     public static void finishTeleportsToWorld(ServerWorld world) {
         ((ServerWorldExtended) world).finishReceivingTeleportedEntities();
+    }
+
+    public static void recoverFailedTeleports(ServerWorld world) {
+        ((ServerWorldExtended) world).recoverFailedTeleports();
     }
 }
