@@ -44,9 +44,9 @@ public abstract class ServerWorldMixin implements ServerWorldExtended {
     public abstract MinecraftServer getServer();
 
     @Override
-    public void receiveTeleportedEntity(Entity staleEntityObject, NbtCompound entityNBT, ServerWorld source, Direction.Axis portalAxis, Vec3d inPortalPos) {
+    public void receiveTeleportedEntity(Entity oldEntityObject, NbtCompound entityNBT, ServerWorld source, Direction.Axis portalAxis, Vec3d inPortalPos) {
         ArrayList<TeleportedEntityInfo> teleportedEntities = this.receivedEntities.computeIfAbsent(source, (ServerWorld s) -> new ArrayList<>());
-        teleportedEntities.add(new TeleportedEntityInfo(staleEntityObject, entityNBT, portalAxis, inPortalPos));
+        teleportedEntities.add(new TeleportedEntityInfo(oldEntityObject, entityNBT, portalAxis, inPortalPos));
     }
 
     @Override
@@ -57,7 +57,7 @@ public abstract class ServerWorldMixin implements ServerWorldExtended {
             if (teleportedEntityList != null) {
                 for (TeleportedEntityInfo teleportedEntity : teleportedEntityList) {
                     this.currentlyArrivingEntity = teleportedEntity;
-                    DimensionChangeHelper.arriveInWorld(teleportedEntity, teleportedEntity.staleEntityObject(), teleportedEntity.nbtCompound(), teleportedEntity.staleEntityObject().getType(), (ServerWorld) (Object) this, (ServerWorld) teleportedEntity.staleEntityObject().getWorld());
+                    DimensionChangeHelper.arriveInWorld(teleportedEntity, teleportedEntity.oldEntityObject(), teleportedEntity.nbtCompound(), teleportedEntity.oldEntityObject().getType(), (ServerWorld) (Object) this, (ServerWorld) teleportedEntity.oldEntityObject().getWorld());
                     this.currentlyArrivingEntity = null;
                 }
             }

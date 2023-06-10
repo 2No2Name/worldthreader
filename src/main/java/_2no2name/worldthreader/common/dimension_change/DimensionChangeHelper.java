@@ -13,7 +13,7 @@ import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 
 public class DimensionChangeHelper {
-    public static void arriveInWorld(TeleportedEntityInfo teleportedEntityInfo, Entity staleEntity, NbtCompound entityNBT, EntityType<?> entityType, ServerWorld destination, ServerWorld source) {
+    public static void arriveInWorld(TeleportedEntityInfo teleportedEntityInfo, Entity oldEntityObject, NbtCompound entityNBT, EntityType<?> entityType, ServerWorld destination, ServerWorld source) {
         // [VanillaCopy] partial content of moveToWorld method
 
         //This must be called from the thread of the destination world!
@@ -22,7 +22,7 @@ public class DimensionChangeHelper {
         //Non-vanilla feature / compromise: Nether portals are created for all entities when using multithreading.
         //Aborting the teleport or sending entities back is a bad option
         //This is implemented in EntityMixin behind a gamerule.
-        TeleportTarget teleportTarget = ((EntityAccessor) staleEntity).invokeGetTeleportTarget(destination);
+        TeleportTarget teleportTarget = ((EntityAccessor) oldEntityObject).invokeGetTeleportTarget(destination);
         if (teleportTarget == null) {
             //Creating a portal was not possible or failed. We have to send the entity back. Note: The entity was
             //removed from the source world already and the world kept ticking until the end of the current tick!
@@ -54,8 +54,10 @@ public class DimensionChangeHelper {
     }
 
     public static void restoreEntityInWorld(TeleportedEntityInfo entityInfo) {
-        Entity entity = entityInfo.staleEntityObject();
+        Entity entity = entityInfo.oldEntityObject();
         ((EntityExtended) entity).restoreEntity(entityInfo);
-        ((ServerWorld) entity.getWorld()).tryLoadEntity(entity);
+        if (!entity.isRemoved()) { //Avoid adding entities that were removed for another reason, e.g. falling sand that landed or mobs that died
+            ((ServerWorld) entity.getWorld()).tryLoadEntity(entity);
+        }
     }
 }

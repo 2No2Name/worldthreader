@@ -16,6 +16,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockLocating;
 import net.minecraft.world.World;
 import net.minecraft.world.border.WorldBorder;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -67,6 +68,10 @@ public abstract class EntityMixin implements EntityExtended {
 
 	@Shadow
 	protected abstract void unsetRemoved();
+
+	@Shadow
+	@Nullable
+	public abstract Entity.RemovalReason getRemovalReason();
 
 	//TODO this hides an inject from fabric-api (net.fabricmc.fabric.mixin.dimension.EntityMixin)
 	@Inject(
@@ -171,7 +176,9 @@ public abstract class EntityMixin implements EntityExtended {
 
 	@Override
 	public void restoreEntity(TeleportedEntityInfo teleportedEntity) {
-		this.unsetRemoved();
+		if (this.getRemovalReason() == Entity.RemovalReason.CHANGED_DIMENSION) {
+			this.unsetRemoved();
+		}
 	}
 
 

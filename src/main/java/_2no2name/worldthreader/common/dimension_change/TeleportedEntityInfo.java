@@ -5,6 +5,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
-public record TeleportedEntityInfo(Entity staleEntityObject, NbtCompound nbtCompound, Direction.Axis portalAxis,
+public record TeleportedEntityInfo(Entity oldEntityObject, NbtCompound nbtCompound, Direction.Axis portalAxis,
                                    Vec3d inPortalPos) {
 }

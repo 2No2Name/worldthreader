@@ -36,26 +36,28 @@ public abstract class MobEntityMixin extends Entity implements EntityExtended {
 
     @Override
     public void restoreEntity(TeleportedEntityInfo teleportedEntity) {
-        //Undo the effects of removeFromDimension()
-        this.unsetRemoved();
+        if (this.getRemovalReason() == Entity.RemovalReason.CHANGED_DIMENSION) {
+            //Undo the effects of removeFromDimension()
+            this.unsetRemoved();
 
-        //For MobEntities this includes restoring Leash and Armor/Hand items
-        NbtCompound nbt = teleportedEntity.nbtCompound();
-        if (nbt.contains(MobEntity.LEASH_KEY, NbtElement.COMPOUND_TYPE)) {
-            this.leashNbt = nbt.getCompound(MobEntity.LEASH_KEY);
-            this.readLeashNbt();
-        }
-
-        if (nbt.contains("ArmorItems", NbtElement.LIST_TYPE)) {
-            NbtList nbtList = nbt.getList("ArmorItems", NbtElement.COMPOUND_TYPE);
-            for (int i = 0; i < this.armorItems.size(); ++i) {
-                this.armorItems.set(i, ItemStack.fromNbt(nbtList.getCompound(i)));
+            //For MobEntities this includes restoring Leash and Armor/Hand items
+            NbtCompound nbt = teleportedEntity.nbtCompound();
+            if (nbt.contains(MobEntity.LEASH_KEY, NbtElement.COMPOUND_TYPE)) {
+                this.leashNbt = nbt.getCompound(MobEntity.LEASH_KEY);
+                this.readLeashNbt();
             }
-        }
-        if (nbt.contains("HandItems", NbtElement.LIST_TYPE)) {
-            NbtList nbtList = nbt.getList("HandItems", NbtElement.COMPOUND_TYPE);
-            for (int i = 0; i < this.handItems.size(); ++i) {
-                this.handItems.set(i, ItemStack.fromNbt(nbtList.getCompound(i)));
+
+            if (nbt.contains("ArmorItems", NbtElement.LIST_TYPE)) {
+                NbtList nbtList = nbt.getList("ArmorItems", NbtElement.COMPOUND_TYPE);
+                for (int i = 0; i < this.armorItems.size(); ++i) {
+                    this.armorItems.set(i, ItemStack.fromNbt(nbtList.getCompound(i)));
+                }
+            }
+            if (nbt.contains("HandItems", NbtElement.LIST_TYPE)) {
+                NbtList nbtList = nbt.getList("HandItems", NbtElement.COMPOUND_TYPE);
+                for (int i = 0; i < this.handItems.size(); ++i) {
+                    this.handItems.set(i, ItemStack.fromNbt(nbtList.getCompound(i)));
+                }
             }
         }
     }
