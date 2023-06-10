@@ -20,7 +20,7 @@ public abstract class ItemEntityMixin extends Entity implements EntityExtended {
 
     @Override
     public void onArrivedInWorld() {
-        if (!this.world.isClient) {
+        if (!this.getWorld().isClient) {
             this.tryMerge();
         }
     }
