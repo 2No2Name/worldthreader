@@ -31,9 +31,10 @@ dependencies {
     Set<String> fabricApiModules = [
             "fabric-game-rule-api-v1"
     ]
-    // Add each fabric api module as a compile only dependency
+    // Add each fabric api module as dependency
     fabricApiModules.forEach {
         modImplementation(fabricApi.module(it, "${project.fabric_version}"))
+        modLocalRuntime(fabricApi.module(it, "${project.fabric_version}"))
     }
 }
 
