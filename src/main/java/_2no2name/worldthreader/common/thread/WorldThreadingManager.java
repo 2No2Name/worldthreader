@@ -63,6 +63,10 @@ public class WorldThreadingManager {
 		return this.worldThreads;
 	}
 
+	public boolean isWorldThread(Thread thread) {
+		return this.worldThreads.containsKey(thread);
+	}
+
 	public int tickBarrier() {
 		return this.barrier(this.tickBarrier);
 	}
@@ -85,6 +89,10 @@ public class WorldThreadingManager {
 		phaser.arrive();
 		this.tryGiveAwayExclusiveWorldAccess();
 		return phaser.awaitAdvance(phase);
+	}
+
+	public boolean hasExclusiveWorldAccess() {
+		return this.threadWithExclusiveWorldAccess.get() == Thread.currentThread();
 	}
 
 	/**

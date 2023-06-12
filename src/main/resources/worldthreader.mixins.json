@@ -16,6 +16,7 @@
     "exclusive_world_access.EntityMixin",
     "exclusive_world_access.MinecraftServerMixin",
     "profiler.ServerWorldMixin",
+    "thread_ownership.MainThreadExecutorMixin",
     "thread_ownership.ServerChunkManagerMixin",
     "thread_ownership.WorldMixin",
     "threading_compatibility.RedstoneWireBlockMixin",
