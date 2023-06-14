@@ -7,7 +7,6 @@ import _2no2name.worldthreader.common.thread.WorldThreadingManager;
 import net.minecraft.network.packet.s2c.play.WorldTimeUpdateS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.GameRules;
@@ -16,17 +15,6 @@ import net.minecraft.world.level.UnmodifiableLevelProperties;
 import java.util.function.BooleanSupplier;
 
 public class ServerWorldTicking {
-
-    public static void handleCrash(CrashReport crashReport) {
-        throw new CrashException(crashReport);
-        //TODO implement actually crashing the server instead of only the thread
-
-
-        //TODO should we terminate withinTickBarrier here?
-
-        //TODO What happens with teleporting but not yet arrived entities?
-    }
-
 
     public static boolean isMainWorld(ServerWorld world) {
         return !(world.getLevelProperties() instanceof UnmodifiableLevelProperties);
@@ -70,22 +58,34 @@ public class ServerWorldTicking {
             try {
                 serverWorld.tick(shouldKeepTicking);
             } catch (Throwable throwable) {
-                CrashReport crashReport = CrashReport.create(throwable, "Exception ticking world");
-                serverWorld.addDetailsToCrashReport(crashReport);
-                ServerWorldTicking.handleCrash(crashReport);
+                delegateCrash(throwable, "Exception ticking world", serverWorld, worldThreadingManager);
+            }
+
+            try {
+                worldThreadingManager.withinTickBarrier();
+                finishTeleportsToWorld(serverWorld);
+            } catch (Throwable throwable) {
+                delegateCrash(throwable, "Exception receiving entities from other worlds", serverWorld, worldThreadingManager);
+            }
+
+            try {
+                worldThreadingManager.withinTickBarrier();
+                recoverFailedTeleports(serverWorld);
+            } catch (Throwable throwable) {
+                delegateCrash(throwable, "Exception restoring entities that could not be teleported to another world", serverWorld, worldThreadingManager);
             }
             worldProfiler.pop();
             worldProfiler.pop();
-
-            worldThreadingManager.withinTickBarrier();
-            finishTeleportsToWorld(serverWorld);
-            worldThreadingManager.withinTickBarrier();
-            recoverFailedTeleports(serverWorld);
         } catch (Throwable throwable) {
-            CrashReport crashReport = CrashReport.create(throwable, "Exception in server world thread");
-            serverWorld.addDetailsToCrashReport(crashReport);
-            ServerWorldTicking.handleCrash(crashReport);
+            delegateCrash(throwable, "Exception in server world thread", serverWorld, worldThreadingManager);
         }
+    }
+
+    private static void delegateCrash(Throwable throwable, String title, ServerWorld serverWorld, WorldThreadingManager worldThreadingManager) {
+        CrashReport crashReport = CrashReport.create(throwable, title);
+        serverWorld.addDetailsToCrashReport(crashReport);
+        worldThreadingManager.handleCrash(crashReport);
+
     }
 
     public static void finishTeleportsToWorld(ServerWorld world) {

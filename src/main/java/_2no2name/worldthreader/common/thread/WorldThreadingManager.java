@@ -5,6 +5,8 @@ import _2no2name.worldthreader.common.mixin_support.interfaces.MinecraftServerEx
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.crash.CrashException;
+import net.minecraft.util.crash.CrashReport;
 
 import java.util.concurrent.Phaser;
 import java.util.concurrent.Semaphore;
@@ -27,6 +29,7 @@ public class WorldThreadingManager {
 	private final AtomicReference<Thread> threadWithExclusiveWorldAccess = new AtomicReference<>(null);
 
 	private boolean isMultiThreadedPhase = false;
+	private CrashReport crashReport;
 
 
 	public WorldThreadingManager(MinecraftServer server) {
@@ -161,6 +164,34 @@ public class WorldThreadingManager {
 			} else {
 				LockSupport.unpark(thread);
 			}
+		}
+	}
+
+	public synchronized void handleCrash(CrashReport crashReport) {
+		if (this.crashReport == null) {
+			this.crashReport = crashReport;
+			this.tickBarrier.forceTermination(); //Destroy the tick barrier to prevent all threads from entering a new tick and to wake up the main thread.
+			//The main thread will call throwCrashReportIfPresent()
+		} else {
+			this.crashReport.addElement("Crashing while already crashing").add("Crash Report", crashReport);
+		}
+	}
+
+	public void throwCrashIfPresent() {
+		if (this.crashReport != null) {
+			//Give all world threads the opportunity to finish gracefully.
+			int threadsToJoin = this.worldThreads.size();
+			for (int i = 0; i < 2 && threadsToJoin > 0; i++) {
+				for (Thread thread : this.worldThreads.keySet()) {
+					try {
+						thread.join(1000);
+						threadsToJoin--;
+					} catch (InterruptedException ignored) {
+					}
+				}
+				this.withinTickBarrier.forceTermination();
+			}
+			throw new CrashException(this.crashReport);
 		}
 	}
 }
