@@ -4,10 +4,7 @@ package _2no2name.worldthreader.mixin.threadsafe_scoreboard;
 import _2no2name.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import _2no2name.worldthreader.common.scoreboard.ThreadsafeScoreboard;
 import com.google.common.collect.ImmutableMap;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.ScoreboardCriterion;
-import net.minecraft.scoreboard.ScoreboardObjective;
-import net.minecraft.scoreboard.ServerScoreboard;
+import net.minecraft.scoreboard.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
@@ -71,16 +68,6 @@ public class ServerScoreboardMixin extends Scoreboard implements ThreadsafeScore
         }
     }
 
-    @Override
-    public boolean containsObjective(String name) {
-        return this.getScoreboardObjectivesImmutable().containsKey(name);
-    }
-
-    @Override
-    public ScoreboardObjective getObjective(String name) {
-        return this.getScoreboardObjectivesImmutable().get(name);
-    }
-
     @Nullable
     @Override
     public ScoreboardObjective getNullableObjective(@Nullable String name) {
@@ -100,7 +87,7 @@ public class ServerScoreboardMixin extends Scoreboard implements ThreadsafeScore
 
     @Nullable
     @Override
-    public ScoreboardObjective getObjectiveForSlot(int slot) {
+    public ScoreboardObjective getObjectiveForSlot(ScoreboardDisplaySlot slot) {
         boolean requiresLocking = ((MinecraftServerExtended) this.server).isTickMultithreaded();
         if (requiresLocking) {
             this.readWriteLock.readLock().lock();
@@ -115,10 +102,10 @@ public class ServerScoreboardMixin extends Scoreboard implements ThreadsafeScore
     }
 
     @Inject(
-            method = "setObjectiveSlot(ILnet/minecraft/scoreboard/ScoreboardObjective;)V",
+            method = "setObjectiveSlot(Lnet/minecraft/scoreboard/ScoreboardDisplaySlot;Lnet/minecraft/scoreboard/ScoreboardObjective;)V",
             at = @At("HEAD")
     )
-    private void acquireSetObjectiveSlot(int slot, ScoreboardObjective objective, CallbackInfo ci) {
+    private void acquireSetObjectiveSlot(ScoreboardDisplaySlot slot, ScoreboardObjective objective, CallbackInfo ci) {
         boolean requiresLocking = ((MinecraftServerExtended) this.server).isTickMultithreaded();
         if (requiresLocking) {
             this.readWriteLock.writeLock().lock();
@@ -126,10 +113,10 @@ public class ServerScoreboardMixin extends Scoreboard implements ThreadsafeScore
     }
 
     @Inject(
-            method = "setObjectiveSlot(ILnet/minecraft/scoreboard/ScoreboardObjective;)V",
+            method = "setObjectiveSlot(Lnet/minecraft/scoreboard/ScoreboardDisplaySlot;Lnet/minecraft/scoreboard/ScoreboardObjective;)V",
             at = @At("HEAD")
     )
-    private void releaseSetObjectiveSlot(int slot, ScoreboardObjective objective, CallbackInfo ci) {
+    private void releaseSetObjectiveSlot(ScoreboardDisplaySlot slot, ScoreboardObjective objective, CallbackInfo ci) {
         boolean requiresLocking = ((MinecraftServerExtended) this.server).isTickMultithreaded();
         if (requiresLocking) {
             this.readWriteLock.writeLock().unlock();
