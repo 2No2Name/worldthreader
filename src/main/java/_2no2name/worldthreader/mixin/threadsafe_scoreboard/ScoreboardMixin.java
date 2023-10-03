@@ -35,6 +35,11 @@ public abstract class ScoreboardMixin {
     @Mutable
     @Shadow
     @Final
+    private Map<ScoreboardDisplaySlot, ScoreboardObjective> objectiveSlots;
+
+    @Mutable
+    @Shadow
+    @Final
     private Map<String, Team> teams;
 
     @Mutable
@@ -50,6 +55,7 @@ public abstract class ScoreboardMixin {
         if (this instanceof ThreadsafeScoreboard) {
             this.objectivesByCriterion = new ConcurrentHashMap<>(this.objectivesByCriterion);
             this.playerObjectives = new ConcurrentHashMap<>(this.playerObjectives);
+            this.objectiveSlots = new ConcurrentHashMap<>(this.objectiveSlots);
             this.teams = new ConcurrentHashMap<>(this.teams);
             this.teamsByPlayer = new ConcurrentHashMap<>(this.teamsByPlayer);
         }
@@ -57,7 +63,7 @@ public abstract class ScoreboardMixin {
 
     @Redirect(
             method = "addObjective(Ljava/lang/String;Lnet/minecraft/scoreboard/ScoreboardCriterion;Lnet/minecraft/text/Text;Lnet/minecraft/scoreboard/ScoreboardCriterion$RenderType;)Lnet/minecraft/scoreboard/ScoreboardObjective;",
-            at = @At(value = "NEW", target = "net/minecraft/scoreboard/ScoreboardObjective")
+            at = @At(value = "NEW", target = "(Lnet/minecraft/scoreboard/Scoreboard;Ljava/lang/String;Lnet/minecraft/scoreboard/ScoreboardCriterion;Lnet/minecraft/text/Text;Lnet/minecraft/scoreboard/ScoreboardCriterion$RenderType;)Lnet/minecraft/scoreboard/ScoreboardObjective;")
     )
     private ScoreboardObjective createThreadsafeObjective(Scoreboard scoreboard, String name, ScoreboardCriterion criterion, Text displayName, ScoreboardCriterion.RenderType renderType) {
         return new ThreadsafeScoreboardObjective(scoreboard, name, criterion, displayName, renderType);

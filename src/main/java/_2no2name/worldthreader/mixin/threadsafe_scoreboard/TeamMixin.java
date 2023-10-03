@@ -40,6 +40,10 @@ public abstract class TeamMixin extends AbstractTeam {
     @Final
     private Set<String> playerList;
 
+    @Shadow
+    @Final
+    private String name;
+
     @Inject(
             method = "<init>",
             at = @At("RETURN")
@@ -48,6 +52,7 @@ public abstract class TeamMixin extends AbstractTeam {
         if (this.scoreboard instanceof ThreadsafeScoreboard) {
             this.playerList = new ConcurrentHashMap<String, String>().keySet("");
         }
+        this.atomicDisplayName.set(Text.literal(this.name));
     }
 
     @Redirect(
