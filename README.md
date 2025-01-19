@@ -40,7 +40,7 @@ Worldthreader aims to conserve vanilla-parity in most points.
 Behavior that is based on the timing of entities going through portals might be delayed by a gametick when the entity is
 leaving the overworld. However `/gamerule worldthreader_AdditionalEntityTickAfterTeleport` ticks entities which are not
 teleporting to the overworld once after being placed in the world. This should allow them to catch up on the tick they
-missed out on. However this happens at the end of the tick, meaning that no other mobs or pistons were able to push or
+missed out on. However, this happens at the end of the tick, meaning that no other mobs or pistons were able to push or
 damage the entity in that tick, because it hasn't been there yet.
 
 In vanilla, nether portals do not teleport non-player entities when there is no nether portal in range in the other
@@ -83,4 +83,4 @@ There is the DimThread mod which supports a few older versions: https://github.c
 ### License
 
 Worldthreader is licensed under MIT, a free and open-source license. For more information, please read
-the [license file](https://github.com/2No2Name/worldthreader/blob/develop/LICENSE).
+the [license file](LICENSE).

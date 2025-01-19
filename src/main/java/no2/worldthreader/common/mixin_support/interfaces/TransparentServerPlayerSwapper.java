@@ -1,0 +1,7 @@
+package no2.worldthreader.common.mixin_support.interfaces;
+
+import net.minecraft.server.level.ServerPlayer;
+
+public interface TransparentServerPlayerSwapper {
+    ServerPlayer worldthreader$swapPlayerWithNewCopy(ServerPlayer previous);
+}
