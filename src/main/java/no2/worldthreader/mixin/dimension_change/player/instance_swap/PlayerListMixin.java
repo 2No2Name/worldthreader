@@ -4,8 +4,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.portal.TeleportTransition;
 import no2.worldthreader.common.mixin_support.interfaces.TransparentServerPlayerSwapper;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,16 +23,16 @@ public abstract class PlayerListMixin implements TransparentServerPlayerSwapper 
     @Shadow @Final private Map<UUID, ServerPlayer> playersByUUID;
 
     @Override
-    public ServerPlayer worldthreader$swapRemovedPlayerWithNewCopy(ServerPlayer previousPlayer) {
+    public ServerPlayer worldthreader$swapRemovedPlayerWithNewCopy(ServerPlayer previousPlayer, ServerLevel newLevel) {
         //Copied from PlayerList.respawn, but removed a bunch of things that are wrong
         // bl = true (keep inventory or so, used when using end portals)
         // removalReason = Changed Dimension (least harmful, also we use it when changing dimension)
 
         boolean removedFromPlayerList = this.players.remove(previousPlayer);
-        previousPlayer.serverLevel().removePlayerImmediately(previousPlayer, Entity.RemovalReason.CHANGED_DIMENSION);
 
-        ServerLevel newLevel = previousPlayer.serverLevel(); // Not from teleportTransition
-        ServerPlayer newPlayer = new ServerPlayer(this.server, newLevel, previousPlayer.getGameProfile(), previousPlayer.clientInformation());
+        //noinspection DataFlowIssue
+        ServerPlayer newPlayer = new ServerPlayer(this.server, null, previousPlayer.getGameProfile(), previousPlayer.clientInformation());
+
         newPlayer.connection = previousPlayer.connection;
         newPlayer.restoreFrom(previousPlayer, true);
         newPlayer.setId(previousPlayer.getId());
@@ -45,7 +43,6 @@ public abstract class PlayerListMixin implements TransparentServerPlayerSwapper 
             newPlayer.addTag(string);
         }
 
-        newLevel.addRespawnedPlayer(newPlayer);
         if (removedFromPlayerList) {
             this.players.add(newPlayer);
         }
@@ -53,7 +50,12 @@ public abstract class PlayerListMixin implements TransparentServerPlayerSwapper 
             this.playersByUUID.put(newPlayer.getUUID(), newPlayer);
         }
 
+        //The world should not be set yet -> just set it for the call that needs it
+        //Loot context or so needs the minecraft server and the random instance from the level
+        newPlayer.setServerLevel(newLevel);
         newPlayer.initInventoryMenu();
+        newPlayer.setServerLevel(null);
+
         newPlayer.setHealth(newPlayer.getHealth());
 
         //Additional Stuff
@@ -63,7 +65,8 @@ public abstract class PlayerListMixin implements TransparentServerPlayerSwapper 
         if (newPlayer.getPortalCooldown() != previousPlayer.getPortalCooldown()) {
             newPlayer.setPortalCooldown(previousPlayer.getPortalCooldown());
         }
-        
+//        if (newPlayer.enderPearls) //TODO
+
         //Others like this might be relevant but hard to track down, not doing it for now
 //        newPlayer.startingToFallPosition = previousPlayer.startingToFallPosition;
         //TODO check the set of enderpearls and the other somewhat important fields (which though?)

@@ -48,28 +48,27 @@ public abstract class MainThreadExecutorMixin extends BlockableEventLoop<Runnabl
             method = "schedule(Ljava/lang/Runnable;)V", at = @At("HEAD"), cancellable = true
     )
     private void executeWithExclusiveWorldAccess(Runnable runnable, CallbackInfo ci) {
-        if (this.server.worldthreader$isTickMultithreaded()) {
-            Thread thread = Thread.currentThread();
-            WorldThreadingManager worldThreadingManager = this.server.worldthreader$getThreadingManager();
-            if (thread != this.getRunningThread()) {
-                //noinspection ConstantConditions
-                if (worldThreadingManager.isWorldThread(this.getRunningThread())) {
-                    if (worldThreadingManager.isWorldThread(thread)) {
-                        if (!worldThreadingManager.hasExclusiveWorldAccess()) {
-                            if (!this.warned) {
-                                IllegalStateException exception = new IllegalStateException("Worldthreader: Cross-World Access Detected");
-                                LOGGER.error("Worldthreader: A world thread (" + thread + ") is accessing another thread's (" + this.getRunningThread() + ") world! Worldthreader tries its best to handle this, but this hints at a major mod compatibility issue which may corrupt your world! This warning is only given once per world thread! Please consider reporting this to the Worldthreader issue tracker! Stacktrace: ");
-                                exception.printStackTrace();
-                                this.warned = true;
-                                throw exception; //TODO remove this line
-                            }
-                            worldThreadingManager.waitForExclusiveWorldAccess();
-                        }
-                        runnable.run();
-                        ci.cancel();
-                    }
-                }
-            }
-        }
+//        if (this.server.worldthreader$isTickMultithreaded()) {
+//            Thread thread = Thread.currentThread();
+//            WorldThreadingManager worldThreadingManager = this.server.worldthreader$getThreadingManager();
+//            if (thread != this.getRunningThread()) {
+//                //noinspection ConstantConditions
+//                if (worldThreadingManager.isWorldThread(this.getRunningThread())) {
+//                    if (worldThreadingManager.isWorldThread(thread)) {
+//                        if (!worldThreadingManager.hasExclusiveWorldAccess()) {
+//                            if (!this.warned) {
+//                                IllegalStateException exception = new IllegalStateException("Worldthreader: Cross-World Access Detected");
+//                                LOGGER.error("Worldthreader: A world thread (" + thread + ") is accessing another thread's (" + this.getRunningThread() + ") world! Worldthreader tries its best to handle this, but this hints at a major mod compatibility issue which may corrupt your world! This warning is only given once per world thread! Please consider reporting this to the Worldthreader issue tracker! Stacktrace: ");
+//                                exception.printStackTrace();
+//                                this.warned = true;
+//                            }
+//                            worldThreadingManager.waitForExclusiveWorldAccess();
+//                        }
+//                        runnable.run();
+//                        ci.cancel();
+//                    }
+//                }
+//            }
+//        } //TODO decide what to do with this. At time of commenting this leads to StackOverFlowError when using interdimensional ender pearl teleportation
     }
 }

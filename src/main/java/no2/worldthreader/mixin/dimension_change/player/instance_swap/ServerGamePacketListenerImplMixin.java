@@ -4,6 +4,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.TickablePacketListener;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
@@ -24,16 +25,19 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
     @Shadow public ServerPlayer player;
 
 
+    @Shadow public abstract void resetPosition();
+
     public ServerGamePacketListenerImplMixin(MinecraftServer minecraftServer, Connection connection, CommonListenerCookie commonListenerCookie) {
         super(minecraftServer, connection, commonListenerCookie);
     }
 
     @Override
-    public ServerPlayer worldthreader$swapRemovedPlayerWithNewCopy(ServerPlayer previous) {
+    public ServerPlayer worldthreader$swapRemovedPlayerWithNewCopy(ServerPlayer previous, ServerLevel newLevel) {
         if (this.player != previous) {
             throw new IllegalArgumentException("Players not matching before player swap.");
         }
-        this.player = ((TransparentServerPlayerSwapper)this.server.getPlayerList()).worldthreader$swapRemovedPlayerWithNewCopy(this.player);
+        this.player = ((TransparentServerPlayerSwapper)this.server.getPlayerList()).worldthreader$swapRemovedPlayerWithNewCopy(this.player, newLevel);
+        this.resetPosition();
         return this.player;
     }
 }

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "worldthreader",
   "version": "${version}",
-  "name": "DimensionalThreading",
-  "description": "An attempt to optimize the fabric server, by assigning each dimension their own thread.",
+  "name": "Worldthreader",
+  "description": "Unstable optimization mod that runs each dimension a separate thread.",
   "license": "MIT",
   "environment": "*",
   "entrypoints": {

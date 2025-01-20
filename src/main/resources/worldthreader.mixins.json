@@ -22,6 +22,7 @@
     "dimension_change.departure.triggers.NetherPortalBlockMixin",
     "dimension_change.departure.triggers.ThrownEnderpearlMixin",
     "dimension_change.player.instance_swap.PlayerListMixin",
+    "dimension_change.player.instance_swap.PlayerMixin",
     "dimension_change.player.instance_swap.ServerGamePacketListenerImplMixin",
     "dimension_change.player.instance_swap.ServerPlayerMixin",
     "dimension_change.recover_failure.EntityMixin",
