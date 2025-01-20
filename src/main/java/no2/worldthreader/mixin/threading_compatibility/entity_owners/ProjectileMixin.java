@@ -12,8 +12,10 @@ import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
@@ -21,6 +23,8 @@ import java.util.Objects;
 @Mixin(Projectile.class)
 public abstract class ProjectileMixin extends Entity implements TraceableEntity, UnsafeOwnerAccess {
     @Shadow private @Nullable Entity cachedOwner;
+
+    @Shadow public abstract void setOwner(@Nullable Entity entity);
 
     public ProjectileMixin(EntityType<? extends ThrowableItemProjectile> entityType, Level level) {
         super(entityType, level);
@@ -43,5 +47,32 @@ public abstract class ProjectileMixin extends Entity implements TraceableEntity,
     @Override
     public @Nullable Entity worldthreader$getCachedOwnerUnsafe() {
         return this.cachedOwner;
+    }
+
+    @Redirect(
+            method =  {"setOwner(Lnet/minecraft/world/entity/Entity;)V", "setOwnerThroughUUID(Ljava/util/UUID;)V"}, require = 2,
+            at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/projectile/Projectile;cachedOwner:Lnet/minecraft/world/entity/Entity;")
+    )
+    public void handleSetCachedOwner(Projectile theProjectile, Entity cachedOwner) {
+        this.setCachedOwnerWrapped(theProjectile, cachedOwner);
+    }
+    @Redirect(
+            method =  {"getOwner()Lnet/minecraft/world/entity/Entity;"},
+            at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/projectile/Projectile;cachedOwner:Lnet/minecraft/world/entity/Entity;", ordinal = 3)
+    )
+    public void handleSetCachedOwner1(Projectile theProjectile, Entity cachedOwner) {
+        this.setCachedOwnerWrapped(theProjectile, cachedOwner);
+    }
+    @Redirect(
+            method =  {"restoreFrom(Lnet/minecraft/world/entity/Entity;)V"},
+            at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/projectile/Projectile;cachedOwner:Lnet/minecraft/world/entity/Entity;", ordinal = 1)
+    )
+    public void handleSetCachedOwner2(Projectile theProjectile, Entity cachedOwner) {
+        this.setCachedOwnerWrapped(theProjectile, cachedOwner);
+    }
+
+    @Unique
+    protected void setCachedOwnerWrapped(Projectile theProjectile, Entity cachedOwner) {
+        ((ProjectileMixin) (Object) theProjectile).cachedOwner = cachedOwner;
     }
 }

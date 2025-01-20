@@ -29,10 +29,11 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
     }
 
     @Override
-    public ServerPlayer worldthreader$swapPlayerWithNewCopy(ServerPlayer previous) {
-        if (this.player != previous)
+    public ServerPlayer worldthreader$swapRemovedPlayerWithNewCopy(ServerPlayer previous) {
+        if (this.player != previous) {
             throw new IllegalArgumentException("Players not matching before player swap.");
-        this.player = ((TransparentServerPlayerSwapper)this.server.getPlayerList()).worldthreader$swapPlayerWithNewCopy(this.player);
+        }
+        this.player = ((TransparentServerPlayerSwapper)this.server.getPlayerList()).worldthreader$swapRemovedPlayerWithNewCopy(this.player);
         return this.player;
     }
 }

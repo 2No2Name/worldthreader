@@ -4,6 +4,9 @@
 Each dimension has its own thread. There are multiple synchronization points to keep the behavior as in vanilla.
 At the end of each tick dimensions wait for each other to finish processing and exchange teleported entities safely.
 
+The field Entity#level is treated as effectively final for entities that have been added to worlds, allowing unsynchronized reads.
+The server player teleportation code is modified such that the level field is not modified.
+
 ## Interdimensional Teleportation
 As in vanilla, entities disappear when they teleport. In contrast to vanilla, the entities don't appear in the destination dimension immediately, but only at the end of the current tick.
 
