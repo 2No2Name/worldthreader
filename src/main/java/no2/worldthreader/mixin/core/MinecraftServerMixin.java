@@ -103,6 +103,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 	@Override
 	public boolean worldthreader$shouldKeepTickingThreaded() {
 		//TODO confirm this implementation does not cause issues (unclear semantics / missing memory visibility guarantees)
+		// either this is correct or a really weird condition, as it uses the main thread's timing for the worker thread, which probably kinda works but might not be threadsafe
 		return this.haveTime();
 	}
 }

@@ -61,7 +61,7 @@ public class DimensionChangeHelper {
 
         if (ModGameRules.SHOULD_TICK_ENTITY_AFTER_TELEPORT && ServerWorldTicking.isMainWorld(destination)) {
             newEntity.tick();
-            //TODO maybe use a collection and then tick all of the ones in the collection, avoids issue where the others didn't arrive yet and thus no interaction takes place (would only avoid this for the teleported ones though)
+            //Small todo: maybe use a collection and then tick all of the ones in the collection, avoids issue where the others didn't arrive yet and thus no interaction takes place (would only avoid this for the teleported ones though)
         }
     }
 

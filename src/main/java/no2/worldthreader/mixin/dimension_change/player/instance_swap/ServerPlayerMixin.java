@@ -35,6 +35,9 @@ public class ServerPlayerMixin {
             throw new AssertionError("Worldthreader Mixin placed at incorrect position in ServerPlayer.teleport!");
         }
         ServerPlayer serverPlayer = ((TransparentServerPlayerSwapper) original.connection).worldthreader$swapPlayerWithNewCopy(original);
+        if (!original.isRemoved()) {
+            throw new IllegalStateException("Worldthreader: Original player must be removed after replacement with new copy!");
+        }
         return serverPlayer;
     }
 }

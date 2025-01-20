@@ -11,23 +11,5 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ThrownEnderpearl.class)
 public abstract class ThrownEnderpearlMixin {
-
-    @Shadow
-    private static native boolean isAllowedToTeleportOwner(Entity entity, Level level);
-
-    @Redirect(
-            method = "onHit(Lnet/minecraft/world/phys/HitResult;)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/ThrownEnderpearl;isAllowedToTeleportOwner(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/Level;)Z")
-    )
-    private boolean requestOwnerTeleport(Entity entity, Level level) {
-        if (entity.level().dimension() == level.dimension()) {
-            return isAllowedToTeleportOwner(entity, level);
-        }
-        DimensionChangeHelper.requestEnderPearlTeleportFromDestinationWorld((ThrownEnderpearl) (Object) this, entity);
-        return false;
-    }
-
-
-    //TODO make the getOwner search threadsafe
-    //Replace in the ender pearl death, tickets and teleport attempt...
+    //Todo Replace the ender pearl death, chunk ticket code as it forces serialization many ticks/every tick in plausible scenarios
 }
