@@ -15,6 +15,8 @@
 - does cross world player pet teleportation exist?
 - calculatePassengerTransition - probably done already?
 - LevelData / Derived LevelData, e.g. command block using /difficulty
+- Scoreboard uses broadcastAll
+- All levels use broadcastAll during weather tick ???
 
 ## Check consequences of fixes
 - ServerPlayer is not newly created unless first time leaving the end

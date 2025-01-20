@@ -44,7 +44,7 @@
     "threadsafe_scoreboard.ScoreboardAccess",
     "threadsafe_scoreboard.ScoreboardCommandMixin",
     "threadsafe_scoreboard.ScoreboardMixin",
-    "threadsafe_scoreboard.ScoreboardObjectiveMixin",
+    "threadsafe_scoreboard.ObjectiveMixin",
     "threadsafe_scoreboard.ScoreboardSaveDataMixin",
     "threadsafe_scoreboard.ScoreMixin",
     "threadsafe_scoreboard.ServerScoreboardMixin",

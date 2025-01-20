@@ -54,7 +54,7 @@ public abstract class ServerLevelMixin extends Level {
             //Dependent worlds need to wait for the main world to update the weather first, otherwise they might update their weather based on
             //outdated values or values read with race conditions.
             worldThreadingManager.withinTickBarrier();
-            this.advanceWeatherCycle();
+            this.advanceWeatherCycle(); //TODO multiple threads sending packets in here?
         } else {
             //Update the weather from the main world immediately
             this.advanceWeatherCycle();
