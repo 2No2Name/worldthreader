@@ -34,7 +34,8 @@ public class ServerScoreboardMixin extends Scoreboard implements ThreadsafeScore
             method = {
                     "setDisplayObjective(Lnet/minecraft/world/scores/DisplaySlot;Lnet/minecraft/world/scores/Objective;)V",
                     "stopTrackingObjective(Lnet/minecraft/world/scores/Objective;)V",
-                    "startTrackingObjective(Lnet/minecraft/world/scores/Objective;)V"
+                    "startTrackingObjective(Lnet/minecraft/world/scores/Objective;)V",
+                    "addDirtyListener(Ljava/lang/Runnable;)V"
             }, at = @At("HEAD")
     )
     private void ensureSafe(CallbackInfo ci) {
