@@ -40,7 +40,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements U
     //Todo Replace the ender pearl death, chunk ticket code as it forces serialization many ticks/every tick in plausible scenarios
 
     @Override
-    protected void setCachedOwnerWrapped(Projectile theEnderPearl, Entity cachedOwner) {
+    public void setCachedOwnerWrapped(Projectile theEnderPearl, Entity cachedOwner) {
         Entity previousOwner = this.worldthreader$getCachedOwnerUnsafe();
         super.setCachedOwnerWrapped(theEnderPearl, cachedOwner);
         if (previousOwner == cachedOwner) {

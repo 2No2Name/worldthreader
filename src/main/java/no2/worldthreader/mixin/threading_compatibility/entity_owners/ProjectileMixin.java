@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 import no2.worldthreader.common.mixin_support.interfaces.UnsafeOwnerAccess;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -50,29 +51,10 @@ public abstract class ProjectileMixin extends Entity implements TraceableEntity,
     }
 
     @Redirect(
-            method =  {"setOwner(Lnet/minecraft/world/entity/Entity;)V", "setOwnerThroughUUID(Ljava/util/UUID;)V"}, require = 2,
-            at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/projectile/Projectile;cachedOwner:Lnet/minecraft/world/entity/Entity;")
+            method =  {"setOwner(Lnet/minecraft/world/entity/Entity;)V", "setOwnerThroughUUID(Ljava/util/UUID;)V", "getOwner()Lnet/minecraft/world/entity/Entity;", "restoreFrom(Lnet/minecraft/world/entity/Entity;)V"}, require = 4,
+            at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/projectile/Projectile;cachedOwner:Lnet/minecraft/world/entity/Entity;", opcode = Opcodes.PUTFIELD)
     )
-    public void handleSetCachedOwner(Projectile theProjectile, Entity cachedOwner) {
-        this.setCachedOwnerWrapped(theProjectile, cachedOwner);
-    }
-    @Redirect(
-            method =  {"getOwner()Lnet/minecraft/world/entity/Entity;"},
-            at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/projectile/Projectile;cachedOwner:Lnet/minecraft/world/entity/Entity;", ordinal = 3)
-    )
-    public void handleSetCachedOwner1(Projectile theProjectile, Entity cachedOwner) {
-        this.setCachedOwnerWrapped(theProjectile, cachedOwner);
-    }
-    @Redirect(
-            method =  {"restoreFrom(Lnet/minecraft/world/entity/Entity;)V"},
-            at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/projectile/Projectile;cachedOwner:Lnet/minecraft/world/entity/Entity;", ordinal = 1)
-    )
-    public void handleSetCachedOwner2(Projectile theProjectile, Entity cachedOwner) {
-        this.setCachedOwnerWrapped(theProjectile, cachedOwner);
-    }
-
-    @Unique
-    protected void setCachedOwnerWrapped(Projectile theProjectile, Entity cachedOwner) {
+    public void setCachedOwnerWrapped(Projectile theProjectile, Entity cachedOwner) {
         ((ProjectileMixin) (Object) theProjectile).cachedOwner = cachedOwner;
     }
 }

@@ -6,8 +6,8 @@
 
 ## Update Mod to newer versions
 - Scoreboard
-- Check tickrate manager
-- Serverlevel.emptyTime is reset by teleports, probably slightly different from vanilla
+- Check tickrate manager -> probably fine, if it is broken the game never recover as soon as tick freeze is used
+- Serverlevel.emptyTime is reset by teleports, probably slightly different from vanilla (off by one tick? does it matter -> not really)
 
 ## Thread-safety
 - Ender pearls, everything about them

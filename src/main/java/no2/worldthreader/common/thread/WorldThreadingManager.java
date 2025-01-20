@@ -51,6 +51,28 @@ public class WorldThreadingManager {
 		}
 	}
 
+	public static void ensureExclusiveScoreboardAccess(MinecraftServer server) {
+		WorldThreadingManager worldThreadingManager = ((MinecraftServerExtended) server).worldthreader$getThreadingManager();
+		if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase()) {
+            worldThreadingManager.waitForExclusiveWorldAccess();
+        }
+	}
+
+	public static void crashIfNoExclusiveScoreboardAccess(MinecraftServer server) {
+		if (!hasExclusiveScoreboardAccess(server)) {
+			throw new IllegalStateException("Worldthreader: Scoreboard operation requires exclusive scoreboard access!");
+        }
+	}
+
+	public static boolean hasExclusiveScoreboardAccess(MinecraftServer server) {
+		WorldThreadingManager worldThreadingManager = ((MinecraftServerExtended) server).worldthreader$getThreadingManager();
+		if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase()) {
+			Thread currentThread = Thread.currentThread();
+			Thread thread = worldThreadingManager.threadWithExclusiveWorldAccess.get();
+			return thread == currentThread;
+		}
+		return true;
+	}
 
 	public boolean isMultiThreadedPhase() {
 		return this.isMultiThreadedPhase;

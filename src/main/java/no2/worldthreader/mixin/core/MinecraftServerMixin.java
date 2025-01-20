@@ -45,11 +45,11 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 			require = 1, allow = 1
 	)
 	private Iterable<ServerLevel> multiThreadWorldLoop(MinecraftServer instance) {
-		if (this.shouldUseMultithreading == !this.isThreadingEnabled()) {
+		if (this.shouldUseMultithreading == !(this.worldThreadingManager != null)) {
 			this.replaceWorldThreadingManager();
 		}
 
-		if (!this.isThreadingEnabled()) {
+		if (!(this.worldThreadingManager != null)) {
 			return this.getAllLevels();
 		}
 
@@ -71,7 +71,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 
 	@Override
 	public boolean worldthreader$isTickMultithreaded() {
-		return this.isThreadingEnabled() && this.worldThreadingManager.isMultiThreadedPhase();
+		return this.worldThreadingManager != null && this.worldThreadingManager.isMultiThreadedPhase();
 	}
 
 	/**
@@ -80,14 +80,9 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 	 */
 	@Inject(method = "stopServer()V", at = @At("HEAD"))
 	public void shutdownThreading(CallbackInfo ci) {
-		if (this.isThreadingEnabled()) {
+		if (this.worldThreadingManager != null) {
 			this.worldThreadingManager.terminate();
 		}
-	}
-
-	@Unique
-	private boolean isThreadingEnabled() {
-		return this.worldThreadingManager != null;
 	}
 
 	@Override

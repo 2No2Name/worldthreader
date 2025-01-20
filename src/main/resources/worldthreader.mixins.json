@@ -47,7 +47,9 @@
     "threadsafe_scoreboard.ScoreboardObjectiveMixin",
     "threadsafe_scoreboard.ScoreMixin",
     "threadsafe_scoreboard.ServerScoreboardMixin",
-    "threadsafe_scoreboard.TeamMixin"
+    "threadsafe_scoreboard.teams.PlayerTeamMixin",
+    "threadsafe_scoreboard.teams.ScoreboardMixin",
+    "threadsafe_scoreboard.teams.ServerScoreboardMixin"
   ],
   "client": [
   ],

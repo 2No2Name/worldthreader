@@ -1,20 +1,8 @@
 package no2.worldthreader.mixin.threadsafe_scoreboard;
 
-import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.Score;
-import net.minecraft.world.scores.Scoreboard;
 import no2.worldthreader.common.scoreboard.ScoreboardScoreAccess;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Mixin(Score.class)
 public abstract class ScoreMixin implements ScoreboardScoreAccess {
