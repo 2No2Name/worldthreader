@@ -177,7 +177,7 @@ public abstract class ScoreMixin implements AtomicArithmeticScore {
         instance.display(component);
     }
     @ModifyArg(
-            method = "read", at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/DataResult;ifSuccess(Ljava/util/function/Consumer;)Lcom/mojang/serialization/DataResult;")
+            method = "read", at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/DataResult;ifSuccess(Ljava/util/function/Consumer;)Lcom/mojang/serialization/DataResult;", remap = false)
     )
     private static Consumer<?> fieldWrite3(Consumer<?> ifSuccess, @Local Score score) {
         return numberFormat -> score.numberFormat((NumberFormat) numberFormat);

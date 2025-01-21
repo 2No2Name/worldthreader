@@ -7,6 +7,7 @@
 ## Update Mod to newer versions
 - Check tickrate manager -> probably fine, if it is broken the game never recover as soon as tick freeze is used
 - Serverlevel.emptyTime is reset by teleports, probably slightly different from vanilla (off by one tick? does it matter -> not really)
+- Scoreboard commands e.g. add 10 to player score don't update the scoreboard sidebar display
 
 ## Thread-safety
 - Ender pearls, everything about them
