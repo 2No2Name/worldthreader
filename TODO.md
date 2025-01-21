@@ -5,7 +5,6 @@
 - Run some tests to see if there is a performance benefit to using the mod (or is there always a fallback to serial execution in every tick)
 
 ## Update Mod to newer versions
-- Scoreboard
 - Check tickrate manager -> probably fine, if it is broken the game never recover as soon as tick freeze is used
 - Serverlevel.emptyTime is reset by teleports, probably slightly different from vanilla (off by one tick? does it matter -> not really)
 
@@ -15,7 +14,7 @@
 - does cross world player pet teleportation exist?
 - calculatePassengerTransition - probably done already?
 - LevelData / Derived LevelData, e.g. command block using /difficulty
-- Scoreboard uses broadcastAll
+- Scoreboard uses broadcastAll -> player list is not threadsafe to access -> make player list threadsafe!
 - All levels use broadcastAll during weather tick ???
 
 ## Check consequences of fixes
