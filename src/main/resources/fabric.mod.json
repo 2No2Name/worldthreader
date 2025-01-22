@@ -3,7 +3,7 @@
   "id": "worldthreader",
   "version": "${version}",
   "name": "Worldthreader",
-  "description": "Unstable optimization mod that runs each dimension a separate thread.",
+  "description": "Each dimension runs on a separate thread, speeding up each game tick.",
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
@@ -16,7 +16,6 @@
   ],
   "accessWidener": "worldthreader.accesswidener",
   "depends": {
-    "fabricloader": ">=0.16.5",
-    "minecraft": ">=1.21"
+    "minecraft": "1.21.4"
   }
 }
