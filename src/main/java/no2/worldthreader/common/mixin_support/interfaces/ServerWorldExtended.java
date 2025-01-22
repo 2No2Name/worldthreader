@@ -3,7 +3,6 @@ package no2.worldthreader.common.mixin_support.interfaces;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
-import net.minecraft.server.level.ServerLevel;
 
 public interface ServerWorldExtended {
 
@@ -15,8 +14,11 @@ public interface ServerWorldExtended {
 
     void worldthreader$recoverFailedTeleports();
 
-    TeleportedEntityInfo worldthreader$getCurrentlyArrivingEntityInfo();
+    TeleportedEntityInfo worldthreader$arrivingEntityInfo();
 
-    void worldthreader$setCurrentlyArrivingEntityInfo(TeleportedEntityInfo teleportedEntityInfo);
+    void worldthreader$setArrivingEntityInfo(TeleportedEntityInfo teleportedEntityInfo);
 
+    TeleportedEntityInfo worldthreader$removeDepartingEntityInfo();
+
+    void worldthreader$putDepartingEntityInfo(TeleportedEntityInfo teleportedEntityInfo);
 }

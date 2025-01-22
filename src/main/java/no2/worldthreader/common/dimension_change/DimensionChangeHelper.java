@@ -1,12 +1,13 @@
 package no2.worldthreader.common.dimension_change;
 
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
 import net.minecraft.world.level.portal.TeleportTransition;
 import no2.worldthreader.common.ServerWorldTicking;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
 import no2.worldthreader.init.ModGameRules;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,10 +32,10 @@ public class DimensionChangeHelper {
 
     public static void nonPassengerArriveInWorld(TeleportedEntityInfo teleportedEntityInfo, Entity oldEntityObject, ServerLevel destination, ServerLevel source) {
 
-        TeleportedEntityInfo previous = ((ServerWorldExtended) destination).worldthreader$getCurrentlyArrivingEntityInfo();
-        ((ServerWorldExtended) destination).worldthreader$setCurrentlyArrivingEntityInfo(teleportedEntityInfo);
+        TeleportedEntityInfo previous = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
+        ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(teleportedEntityInfo);
         TeleportTransition teleportTransition = Objects.requireNonNull(oldEntityObject.portalProcess).getPortalDestination(source, oldEntityObject);
-        ((ServerWorldExtended) destination).worldthreader$setCurrentlyArrivingEntityInfo(previous);
+        ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(previous);
 
         if (teleportTransition == null) {
             ((ServerWorldExtended) source).worldthreader$receiveFailedTeleport(teleportedEntityInfo);
@@ -50,11 +51,19 @@ public class DimensionChangeHelper {
     }
 
     public static @NotNull Entity arriveIntoWorld(TeleportedEntityInfo teleportedEntityInfo, Entity oldEntityObject, ServerLevel destination, ServerLevel source, TeleportTransition teleportTransition) {
-        TeleportedEntityInfo previous = ((ServerWorldExtended) destination).worldthreader$getCurrentlyArrivingEntityInfo();
-        ((ServerWorldExtended) destination).worldthreader$setCurrentlyArrivingEntityInfo(teleportedEntityInfo);
-        //Heavily modified method, essentially split into departure and arrival
-        Entity newEntity = oldEntityObject.teleportCrossDimension(destination, teleportTransition);
-        ((ServerWorldExtended) destination).worldthreader$setCurrentlyArrivingEntityInfo(previous);
+        TeleportedEntityInfo previous = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
+        ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(teleportedEntityInfo);
+        Entity newEntity;
+        if (oldEntityObject instanceof ServerPlayer) {
+            //ServerPlayer teleportation code is mostly separate from normal entity teleportation code, both in vanilla and worldthreader.
+            //This should only be called when the player is a passenger. Normal player teleportation happens outside the multithreaded part of the tick.
+            //Heavily modified method, essentially split into departure and arrival
+            newEntity = oldEntityObject.teleport(teleportTransition);
+        } else {
+            //Heavily modified method, essentially split into departure and arrival
+            newEntity = oldEntityObject.teleportCrossDimension(destination, teleportTransition);
+        }
+        ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(previous);
 
         if (newEntity == null) {
             throw new IllegalStateException("Worldthreader: Entity could not be placed after crossing dimensions: " + oldEntityObject);

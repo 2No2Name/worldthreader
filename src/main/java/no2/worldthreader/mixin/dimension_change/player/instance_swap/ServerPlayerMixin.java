@@ -15,15 +15,17 @@ import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
-import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
 import no2.worldthreader.common.mixin_support.interfaces.TransparentServerPlayerSwapper;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ServerPlayer.class)
+@Mixin(value = ServerPlayer.class)
 public abstract class ServerPlayerMixin {
 
 
@@ -69,16 +71,6 @@ public abstract class ServerPlayerMixin {
 
     @Inject(
             method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
-            at = @At(value = "HEAD")
-    )
-    private void check(TeleportTransition teleportTransition, CallbackInfoReturnable<ServerPlayer> cir) {
-        if (DimensionChangeHelper.isDummy(teleportTransition) && !teleportTransition.asPassenger()) {
-            throw new IllegalStateException("Worldthreader: Player teleported with dummy transition!");
-        }
-    }
-
-    @Inject(
-            method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;unsetRemoved()V")
     )
     private void swapPlayerWithNewInstance(TeleportTransition teleportTransition, CallbackInfoReturnable<ServerPlayer> cir,
@@ -89,9 +81,6 @@ public abstract class ServerPlayerMixin {
         if (newLevel == this.serverLevel()) {
             throw new AssertionError("Worldthreader: Ordinals of Local Capture are incorrect!");
         }
-
-        //For sanity: Just make sure we have access to all worlds, even though this should never be called during multithreaded tick phase without exclusive access
-        this.server.getAllLevels();
 
         //Swap the player with a new instance, what could go wrong?
         ServerPlayer serverPlayer = ((TransparentServerPlayerSwapper) this.connection).worldthreader$swapRemovedPlayerWithNewCopy((ServerPlayer) (Object) this, newLevel);

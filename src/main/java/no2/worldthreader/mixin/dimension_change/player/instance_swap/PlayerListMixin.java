@@ -30,6 +30,7 @@ public abstract class PlayerListMixin implements TransparentServerPlayerSwapper 
 
         boolean removedFromPlayerList = this.players.remove(previousPlayer);
 
+        //Create the player with a null level, which is set a bit later. The constructor uses the level to adjust the spawn position etc., which is not needed when copying the player.
         //noinspection DataFlowIssue
         ServerPlayer newPlayer = new ServerPlayer(this.server, null, previousPlayer.getGameProfile(), previousPlayer.clientInformation());
 
@@ -50,7 +51,6 @@ public abstract class PlayerListMixin implements TransparentServerPlayerSwapper 
             this.playersByUUID.put(newPlayer.getUUID(), newPlayer);
         }
 
-        //The world should not be set yet -> just set it for the call that needs it
         //Loot context or so needs the minecraft server and the random instance from the level
         newPlayer.setServerLevel(newLevel);
         newPlayer.initInventoryMenu();

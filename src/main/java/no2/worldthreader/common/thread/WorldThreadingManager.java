@@ -1,16 +1,16 @@
 package no2.worldthreader.common.thread;
 
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import net.minecraft.CrashReport;
+import net.minecraft.ReportedException;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.WorldThreaderMod;
 import no2.worldthreader.common.ServerWorldTicking;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
-import net.minecraft.CrashReport;
-import net.minecraft.ReportedException;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 
 import java.util.concurrent.Phaser;
 import java.util.concurrent.Semaphore;
@@ -114,9 +114,14 @@ public class WorldThreadingManager {
 		return ((MinecraftServerExtended) world.getServer()).worldthreader$isTickMultithreaded() && WorldThreadingManager.isAccessibleForOtherThread(world);
 	}
 
-	public static boolean needsExclusiveAccessForWorld(ServerLevel world) {
+	public static boolean isWrongThreadForWorld(ServerLevel world) {
 		WorldThreadingManager worldThreadingManager = ((MinecraftServerExtended) world.getServer()).worldthreader$getThreadingManager();
 		return worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase() && !worldThreadingManager.isWorldThreadOf(world);
+	}
+
+	public static boolean isMultithreadingAndCorrectThreadForWorld(ServerLevel world) {
+		WorldThreadingManager worldThreadingManager = ((MinecraftServerExtended) world.getServer()).worldthreader$getThreadingManager();
+		return worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase() && worldThreadingManager.isWorldThreadOf(world);
 	}
 
 	public int tickBarrier() {

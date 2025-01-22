@@ -4,16 +4,14 @@ package no2.worldthreader.mixin.dimension_change;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.storage.WritableLevelData;
 import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
-import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,7 +19,6 @@ import org.spongepowered.asm.mixin.Unique;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,6 +31,8 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
     private final Set<TeleportedEntityInfo> failedTeleports = new ConcurrentHashMap<TeleportedEntityInfo, Object>().keySet(new Object());
     @Unique
     private TeleportedEntityInfo currentlyArrivingEntity;
+    @Unique
+    private TeleportedEntityInfo currentlyDepartingEntity;
 
     protected ServerLevelMixin(WritableLevelData writableLevelData, ResourceKey<Level> resourceKey, RegistryAccess registryAccess, Holder<DimensionType> holder, boolean bl, boolean bl2, long l, int i) {
         super(writableLevelData, resourceKey, registryAccess, holder, bl, bl2, l, i);
@@ -79,12 +78,27 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
     }
 
     @Override
-    public TeleportedEntityInfo worldthreader$getCurrentlyArrivingEntityInfo() {
+    public TeleportedEntityInfo worldthreader$arrivingEntityInfo() {
         return this.currentlyArrivingEntity;
     }
 
     @Override
-    public void worldthreader$setCurrentlyArrivingEntityInfo(TeleportedEntityInfo teleportedEntityInfo) {
+    public void worldthreader$setArrivingEntityInfo(TeleportedEntityInfo teleportedEntityInfo) {
         this.currentlyArrivingEntity = teleportedEntityInfo;
+    }
+
+    @Override
+    public TeleportedEntityInfo worldthreader$removeDepartingEntityInfo() {
+        TeleportedEntityInfo entityInfo = this.currentlyDepartingEntity;
+        this.currentlyArrivingEntity = null;
+        return entityInfo;
+    }
+
+    @Override
+    public void worldthreader$putDepartingEntityInfo(TeleportedEntityInfo teleportedEntityInfo) {
+        if (this.currentlyDepartingEntity != null) {
+            throw new IllegalStateException("Worldthreader: Another entity is already departing from this level!");
+        }
+        this.currentlyDepartingEntity = teleportedEntityInfo;
     }
 }

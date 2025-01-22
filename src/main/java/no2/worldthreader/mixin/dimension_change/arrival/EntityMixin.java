@@ -6,14 +6,12 @@ import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.PortalProcessor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,23 +23,10 @@ import java.util.List;
 @Mixin(Entity.class)
 public abstract class EntityMixin implements EntityExtended {
 
-    @Shadow private int portalCooldown;
-    @Shadow public abstract void load(CompoundTag compoundTag);
-
-    @Shadow @Nullable public PortalProcessor portalProcess;
-
     @Shadow public abstract Level level();
 
     @Shadow protected abstract TeleportTransition calculatePassengerTransition(TeleportTransition teleportTransition, Entity entity);
 
-    //[VanillaCopy] Entity.copyFrom(Entity)
-	@Override
-	public void worldthreader$copyFromNBT(CompoundTag nbtCompound, Entity oldEntityObject) {
-		nbtCompound.remove("Dimension");
-		this.load(nbtCompound);
-		this.portalCooldown = oldEntityObject.getPortalCooldown();
-		this.portalProcess = oldEntityObject.portalProcess;
-	}
 
     @WrapOperation(
             method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
@@ -51,7 +36,7 @@ public abstract class EntityMixin implements EntityExtended {
             )
     )
     private List<Entity> getPassengerOrEmpty(Entity entity, Operation<List<Entity>> original, @Local(argsOnly = true) ServerLevel destination) {
-        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$getCurrentlyArrivingEntityInfo();
+        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity != null) {
             return List.of();
         } else {
@@ -67,7 +52,7 @@ public abstract class EntityMixin implements EntityExtended {
             )
     )
     private int getSize(List<Entity> instance, Operation<Integer> original, @Local(argsOnly = true) ServerLevel destination) {
-        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$getCurrentlyArrivingEntityInfo();
+        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity != null) {
             return currentlyArrivingEntity.passengers().size();
         } else {
@@ -83,7 +68,7 @@ public abstract class EntityMixin implements EntityExtended {
             )
     )
     private void ejectPassengers(Entity instance, Operation<Void> original, @Local(argsOnly = true) ServerLevel destination) {
-        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$getCurrentlyArrivingEntityInfo();
+        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity == null) {
             original.call(instance);
         }
@@ -98,7 +83,7 @@ public abstract class EntityMixin implements EntityExtended {
     )
     private void placePassengers(ServerLevel serverLevel, TeleportTransition teleportTransition, CallbackInfoReturnable<Entity> cir,
                                  @Local(argsOnly = true) ServerLevel destination, @Local(ordinal = 1) List<Entity> passengersAdded) {
-        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$getCurrentlyArrivingEntityInfo();
+        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity != null) {
             if (this != (Object) currentlyArrivingEntity.oldEntityObject()) {
                 throw new IllegalStateException("Worldthreader: Expected arriving entity to be the current entity!");
@@ -123,7 +108,7 @@ public abstract class EntityMixin implements EntityExtended {
     )
     private CompoundTag restoreFromNBT(Entity oldEntity, CompoundTag compoundTag, Operation<CompoundTag> original) {
         if (this.level() instanceof ServerLevel destination) {
-            TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$getCurrentlyArrivingEntityInfo();
+            TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
             if (currentlyArrivingEntity != null) {
                 return currentlyArrivingEntity.nbtCompound().merge(compoundTag);
             }
@@ -139,7 +124,7 @@ public abstract class EntityMixin implements EntityExtended {
             )
     )
     private void removeOldEntity(Entity instance, Operation<Void> original, @Local(argsOnly = true) ServerLevel destination) {
-        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$getCurrentlyArrivingEntityInfo();
+        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity == null) {
             original.call(instance);
         }

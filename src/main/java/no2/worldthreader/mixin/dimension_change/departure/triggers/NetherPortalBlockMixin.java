@@ -1,9 +1,5 @@
 package no2.worldthreader.mixin.dimension_change.departure.triggers;
 
-import net.minecraft.world.level.block.Portal;
-import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
-import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
-import no2.worldthreader.common.thread.WorldThreadingManager;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -12,7 +8,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.NetherPortalBlock;
+import net.minecraft.world.level.block.Portal;
 import net.minecraft.world.level.portal.TeleportTransition;
+import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
+import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
+import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -42,7 +42,7 @@ public abstract class NetherPortalBlockMixin implements Portal {
             ), cancellable = true
     )
     private void handleOffthreadTeleport(ServerLevel originWorld, Entity entity, BlockPos pos, CallbackInfoReturnable<TeleportTransition> cir, @Local(ordinal = 1) ServerLevel targetWorld) {
-        if (WorldThreadingManager.needsExclusiveAccessForWorld(targetWorld)) {
+        if (WorldThreadingManager.isWrongThreadForWorld(targetWorld)) {
             cir.setReturnValue(DimensionChangeHelper.getNonPassengerDummyTeleportTarget(targetWorld));
         }
     }

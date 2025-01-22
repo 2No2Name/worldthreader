@@ -3,28 +3,20 @@ package no2.worldthreader.mixin.dimension_change.arrival;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.Portal;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
-import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
-import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
 
@@ -61,7 +53,7 @@ public abstract class NetherPortalBlockMixin implements Portal {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/portal/PortalForcer;createPortal(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction$Axis;)Ljava/util/Optional;")
     )
     private Direction.Axis restorePortalAxis(Direction.Axis portalAxis, @Local(argsOnly = true) ServerLevel targetWorld) {
-        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) targetWorld).worldthreader$getCurrentlyArrivingEntityInfo();
+        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) targetWorld).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity != null) {
             return currentlyArrivingEntity.portalAxis();
         }
@@ -91,7 +83,7 @@ public abstract class NetherPortalBlockMixin implements Portal {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/NetherPortalBlock;createDimensionTransition(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/BlockUtil$FoundRectangle;Lnet/minecraft/core/Direction$Axis;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;")
     )
     private static Direction.Axis restorePortalAxis2(Direction.Axis portalAxis, @Local(argsOnly = true) ServerLevel targetWorld) {
-        TeleportedEntityInfo currentlyArrivingEntity = targetWorld == null ? null : ((ServerWorldExtended) targetWorld).worldthreader$getCurrentlyArrivingEntityInfo();
+        TeleportedEntityInfo currentlyArrivingEntity = targetWorld == null ? null : ((ServerWorldExtended) targetWorld).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity != null) {
             return currentlyArrivingEntity.portalAxis();
         }
@@ -103,7 +95,7 @@ public abstract class NetherPortalBlockMixin implements Portal {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/NetherPortalBlock;createDimensionTransition(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/BlockUtil$FoundRectangle;Lnet/minecraft/core/Direction$Axis;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;")
     )
     private static Vec3 restoreInPortalPos(Vec3 inPortalPos, @Local(argsOnly = true) ServerLevel targetWorld) {
-        TeleportedEntityInfo currentlyArrivingEntity = targetWorld == null ? null : ((ServerWorldExtended) targetWorld).worldthreader$getCurrentlyArrivingEntityInfo();
+        TeleportedEntityInfo currentlyArrivingEntity = targetWorld == null ? null : ((ServerWorldExtended) targetWorld).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity != null) {
             return currentlyArrivingEntity.inPortalPos();
         }
