@@ -2,7 +2,6 @@ package no2.worldthreader.mixin.exclusive_world_access;
 
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.thread.WorldThreadingManager;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -52,14 +51,13 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
     private void avoidParallelWorldAccess2(ResourceKey<Level> key, CallbackInfoReturnable<@Nullable ServerLevel> cir) {
         if (this.worldthreader$isTickMultithreaded()) {
             WorldThreadingManager worldThreadingManager = Objects.requireNonNull(this.worldthreader$getThreadingManager());
-            Reference2ReferenceLinkedOpenHashMap<Thread, ServerLevel> worldThreads = worldThreadingManager.getWorldThreads();
-            ServerLevel serverWorld = worldThreads.get(Thread.currentThread());
-            if (serverWorld == null) {
+            if (!worldThreadingManager.isWorldThread(Thread.currentThread())) {
                 //Whatever is happening here, it is an offthread access that this mod did not cause.
+                // Future: Allow non-world threads to also acquire single threaded world access!
                 return;
             }
             //If the thread is accessing its own world, that is fine. Otherwise, acquire exclusive access
-            if (!key.equals(serverWorld.dimension())) {
+            if (!worldThreadingManager.isWorldThreadOf(key)) {
                 this.acquireSingleThreadedWorldAccess();
             }
         }

@@ -43,8 +43,7 @@ public abstract class EndPortalBlockMixin implements Portal {
             ), cancellable = true
     )
     private void handleOffthreadTeleport(ServerLevel originWorld, Entity entity, BlockPos pos, CallbackInfoReturnable<TeleportTransition> cir, @Local(ordinal = 1) ServerLevel targetWorld) {
-        if (((MinecraftServerExtended) originWorld.getServer()).worldthreader$isTickMultithreaded() &&
-                targetWorld != null && !WorldThreadingManager.isThreadOwningWorld(targetWorld)) {
+        if (targetWorld != null && WorldThreadingManager.needsExclusiveAccessForWorld(targetWorld)) {
             cir.setReturnValue(DimensionChangeHelper.getNonPassengerDummyTeleportTarget(targetWorld));
         }
     }

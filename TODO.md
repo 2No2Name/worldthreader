@@ -18,6 +18,11 @@
 - Scoreboard uses broadcastAll -> player list is not threadsafe to access -> make player list threadsafe!
 - All levels use broadcastAll during weather tick ???
 
+## Crashes
+- Player as passenger in cross dimension teleport
+## Bugs
+- Leashed entities stay leashed to player when player follows them through the portal -> kinda like that in vanilla too. Vanilla just has a different behavior when the player teleports and comes back
+
 ## Check consequences of fixes
 - ServerPlayer is not newly created unless first time leaving the end
 - Projectiles can have reference to ServerPlayer as owner

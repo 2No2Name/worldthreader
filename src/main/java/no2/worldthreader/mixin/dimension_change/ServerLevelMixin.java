@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class ServerLevelMixin extends Level implements ServerWorldExtended {
 
     @Unique
-    private final Map<ServerLevel, ArrayList<TeleportedEntityInfo>> receivedEntities = new ConcurrentHashMap<>();
+    private final Map<ResourceKey<Level>, ArrayList<TeleportedEntityInfo>> receivedEntities = new ConcurrentHashMap<>();
     @Unique
     private final Set<TeleportedEntityInfo> failedTeleports = new ConcurrentHashMap<TeleportedEntityInfo, Object>().keySet(new Object());
     @Unique
@@ -44,15 +44,15 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
     public abstract MinecraftServer getServer();
 
     @Override
-    public void worldthreader$receiveTeleportedEntity(ServerLevel source, TeleportedEntityInfo teleportedEntityInfo) {
-        ArrayList<TeleportedEntityInfo> teleportedEntities = this.receivedEntities.computeIfAbsent(source, (ServerLevel s) -> new ArrayList<>());
+    public void worldthreader$receiveTeleportedEntity(ResourceKey<Level> source, TeleportedEntityInfo teleportedEntityInfo) {
+        ArrayList<TeleportedEntityInfo> teleportedEntities = this.receivedEntities.computeIfAbsent(source, (ResourceKey<Level> s) -> new ArrayList<>());
         teleportedEntities.add(teleportedEntityInfo);
     }
 
     @Override
     public void worldthreader$finishReceivingTeleportedEntities() {
-        Reference2ReferenceLinkedOpenHashMap<Thread, ServerLevel> worldThreads = Objects.requireNonNull(((MinecraftServerExtended) this.getServer()).worldthreader$getThreadingManager()).getWorldThreads();
-        for (ServerLevel source : worldThreads.values()) {
+        Set<ResourceKey<Level>> levelKeys = this.getServer().levelKeys();
+        for (ResourceKey<Level> source : levelKeys) {
             ArrayList<TeleportedEntityInfo> teleportedEntityList = this.receivedEntities.remove(source);
             if (teleportedEntityList != null) {
                 for (TeleportedEntityInfo teleportedEntity : teleportedEntityList) {

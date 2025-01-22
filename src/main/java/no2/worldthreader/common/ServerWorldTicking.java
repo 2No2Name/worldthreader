@@ -2,15 +2,13 @@ package no2.worldthreader.common;
 
 import net.minecraft.util.profiling.Profiler;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
-import no2.worldthreader.common.thread.IThreadOwnedObject;
+import no2.worldthreader.common.thread.ThreadOwnedObject;
 import no2.worldthreader.common.thread.ThreadHelper;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import net.minecraft.CrashReport;
-import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.storage.DerivedLevelData;
 import java.util.function.BooleanSupplier;
 
@@ -21,7 +19,7 @@ public class ServerWorldTicking {
     }
 
 
-    public static void runWorldThread(MinecraftServer server, WorldThreadingManager worldThreadingManager, ServerLevel serverWorld) {
+    public static void runWorldThread(MinecraftServer server, WorldThreadingManager worldThreadingManager, ServerLevel serverWorld, ThreadOwnedObject[] threadOwnedObjects) {
         Thread currentThread = Thread.currentThread();
         boolean continueMultithreading = true;
         while (continueMultithreading) {
@@ -29,10 +27,10 @@ public class ServerWorldTicking {
             if (worldThreadingManager.tickBarrier() < 0) {
                 continueMultithreading = false;
             } else {
-                Thread mainThread = ((IThreadOwnedObject) serverWorld).getOwningThread();
-                ThreadHelper.swapOnMultithreadTickStart(mainThread, currentThread, ((IThreadOwnedObject) serverWorld), (IThreadOwnedObject) serverWorld.getChunkSource());
+                Thread mainThread = ((ThreadOwnedObject) serverWorld).worldthreader$getOwningThread();
+                ThreadHelper.swapOnMultithreadTickStart(mainThread, currentThread, threadOwnedObjects);
                 tickThreaded(server, worldThreadingManager, serverWorld);
-                ThreadHelper.swapOnMultithreadTickEnd(mainThread, currentThread, ((IThreadOwnedObject) serverWorld), (IThreadOwnedObject) serverWorld.getChunkSource());
+                ThreadHelper.swapOnMultithreadTickEnd(mainThread, currentThread, threadOwnedObjects);
                 //End of tick barrier
                 if (worldThreadingManager.tickBarrier() < 0) {
                     continueMultithreading = false;

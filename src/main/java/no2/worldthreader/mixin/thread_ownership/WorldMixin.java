@@ -1,14 +1,11 @@
 package no2.worldthreader.mixin.thread_ownership;
 
-import no2.worldthreader.common.thread.IThreadOwnedObject;
+import no2.worldthreader.common.thread.ThreadOwnedObject;
 import net.minecraft.world.level.Level;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 
 @Mixin(Level.class)
-public abstract class WorldMixin implements IThreadOwnedObject {
+public abstract class WorldMixin implements ThreadOwnedObject {
 
     @Mutable
     @Shadow
@@ -16,13 +13,12 @@ public abstract class WorldMixin implements IThreadOwnedObject {
     private Thread thread;
 
     @Override
-    public Thread getOwningThread() {
+    public Thread worldthreader$getOwningThread() {
         return this.thread;
     }
 
     @Override
-    public void setOwningThread(Thread thread) {
+    public void worldthreader$setOwningThread(Thread thread) {
         this.thread = thread;
     }
-
 }

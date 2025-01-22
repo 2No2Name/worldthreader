@@ -24,7 +24,7 @@ public abstract class EntityMixin {
     private int getNextEntityIDThreaded(AtomicInteger entityIdCounter) {
         if (this.level() instanceof ServerLevel && ((MinecraftServerExtended) Objects.requireNonNull(this.level().getServer())).worldthreader$isTickMultithreaded()) {
             return ((ServerWorldWithWirelessRedstoneFix) this.level()).worldthreader$getNextEntityId(entityIdCounter);
-        }
+        } //TODO this probably doesn't work for server players which have null level at start
         return entityIdCounter.incrementAndGet();
     }
 }

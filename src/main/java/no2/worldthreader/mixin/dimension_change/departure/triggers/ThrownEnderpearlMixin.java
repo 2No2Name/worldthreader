@@ -21,7 +21,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Mixin(ThrownEnderpearl.class)
 public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements UnsafeOwnerAccess {
@@ -57,8 +56,8 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements U
 
     @Unique
     private void ensureThreadsafeAccess(Entity cachedOwner) {
-        if (!WorldThreadingManager.isThreadOwningWorld((ServerLevel) cachedOwner.level())) {
-            Objects.requireNonNull(this.getServer()).getLevel(cachedOwner.level().dimension());
+        if (WorldThreadingManager.isWorldAccessDenied((ServerLevel) cachedOwner.level())) {
+            Objects.requireNonNull(this.getServer()).getAllLevels();
         }
     }
 
@@ -66,7 +65,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements U
      * @author 2No2Name
      * @reason Fast prototyping for: Replace the ender pearl death, chunk ticket code as it forces serialization many ticks/every tick in plausible scenarios
      */
-    @Overwrite
+    @Overwrite //TODO replace with nicer, non-overwrite mixins
     public void tick() {
         int i = SectionPos.blockToSectionCoord(this.position().x());
         int j = SectionPos.blockToSectionCoord(this.position().z());
@@ -115,6 +114,9 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements U
 
     @Unique
     private boolean isOwnerDeadPlayer() {
+        if (!this.isOwnerServerPlayer()) {
+            return false;
+        }
         Entity entity = this.getOwner();
         return entity instanceof ServerPlayer && !entity.isAlive();
     }

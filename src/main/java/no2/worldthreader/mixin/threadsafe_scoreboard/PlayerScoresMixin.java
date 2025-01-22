@@ -24,23 +24,22 @@ public class PlayerScoresMixin {
     @Redirect(
             method = "get", at = @At(value = "INVOKE", target = "Lit/unimi/dsi/fastutil/objects/Reference2ObjectOpenHashMap;get(Ljava/lang/Object;)Ljava/lang/Object;", remap = false)
     )
-    private <V> V getThreadSafe(Reference2ObjectOpenHashMap<Objective, V> instance, Object k) {
-        //noinspection unchecked,SuspiciousMethodCalls
-        return (V) this.scoresThreadsafe.get(k);
+    private <V> Object getThreadSafe(Reference2ObjectOpenHashMap<Objective, V> instance, Object k) {
+        // noinspection SuspiciousMethodCalls
+        return this.scoresThreadsafe.get(k);
     }
     @Redirect(
             method = "remove", at = @At(value = "INVOKE", target = "Lit/unimi/dsi/fastutil/objects/Reference2ObjectOpenHashMap;remove(Ljava/lang/Object;)Ljava/lang/Object;", remap = false)
     )
-    private <V> V removeThreadSafe(Reference2ObjectOpenHashMap<Objective, V> instance, Object k) {
-        //noinspection unchecked,SuspiciousMethodCalls
-        return (V) this.scoresThreadsafe.remove(k);
+    private <V> Object removeThreadSafe(Reference2ObjectOpenHashMap<Objective, V> instance, Object k) {
+        // noinspection SuspiciousMethodCalls
+        return this.scoresThreadsafe.remove(k);
     }
     @Redirect(
             method = "setScore", at = @At(value = "INVOKE", target = "Lit/unimi/dsi/fastutil/objects/Reference2ObjectOpenHashMap;put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", remap = false)
     )
-    private <K, V> V putThreadSafe(Reference2ObjectOpenHashMap<K, V> instance, K k, V v) {
-        //noinspection unchecked
-        return (V) this.scoresThreadsafe.put((Objective) k, (Score) v);
+    private <K, V> Object putThreadSafe(Reference2ObjectOpenHashMap<K, V> instance, K k, V v) {
+        return this.scoresThreadsafe.put((Objective) k, (Score) v);
     }
     @Redirect(
             method = "hasScores", at = @At(value = "INVOKE", target = "Lit/unimi/dsi/fastutil/objects/Reference2ObjectOpenHashMap;isEmpty()Z", remap = false)

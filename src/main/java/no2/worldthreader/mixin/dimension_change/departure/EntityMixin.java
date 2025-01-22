@@ -52,7 +52,7 @@ public abstract class EntityMixin implements EntityExtended {
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/portal/TeleportTransition;asPassenger()Z")
 	)
 	private boolean disallowCrossDimensionalPassengerTeleport(boolean isPassenger, @Local(argsOnly = true) TeleportTransition teleportTransition, @Local(ordinal = 0) boolean crossDimensional, @Local(ordinal = 1) ServerLevel destination) {
-        if (crossDimensional && isPassenger && WorldThreadingManager.isWorldAccessDenied(destination)) {
+        if (crossDimensional && isPassenger && WorldThreadingManager.needsExclusiveAccessForWorld(destination)) {
 			DimensionChangeHelper.expectDummy(teleportTransition);
 		}
         return isPassenger;
@@ -78,7 +78,7 @@ public abstract class EntityMixin implements EntityExtended {
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;")
 	)
 	public Entity convertPassengersToTeleportedEntityInfos(Entity passenger, TeleportTransition teleportTransition, Operation<Entity> original, @Local(argsOnly = true) ServerLevel destination, @Share("PassengerInfos") LocalRef<List<TeleportedEntityInfo>> passengerInfos) {
-		if (WorldThreadingManager.isWorldAccessDenied(destination)) {
+		if (WorldThreadingManager.needsExclusiveAccessForWorld(destination)) {
 			DimensionChangeHelper.expectDummy(teleportTransition);
 
 			if (passengerInfos.get() == null) {
@@ -112,7 +112,7 @@ public abstract class EntityMixin implements EntityExtended {
 
 	)
 	private void convertSelfToTeleportedEntityInfo(ServerLevel destination, TeleportTransition teleportTransition, CallbackInfoReturnable<Entity> cir, @Share("PassengerInfos") LocalRef<List<TeleportedEntityInfo>> passengerInfos) {
-		if (WorldThreadingManager.isWorldAccessDenied(destination)) {
+		if (WorldThreadingManager.needsExclusiveAccessForWorld(destination)) {
 
 			cir.setReturnValue(null);
 			DimensionChangeHelper.expectDummy(teleportTransition);
@@ -151,7 +151,7 @@ public abstract class EntityMixin implements EntityExtended {
 				}
 				PASSENGER_TELEPORTED_ENTITY_INFO.set(entityInfo);
 			} else {
-                ((ServerWorldExtended) destination).worldthreader$receiveTeleportedEntity((ServerLevel) this.level(), entityInfo);
+                ((ServerWorldExtended) destination).worldthreader$receiveTeleportedEntity(this.level().dimension(), entityInfo);
             }
 		}
 	}

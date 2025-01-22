@@ -1,5 +1,9 @@
 package no2.worldthreader.common.thread;
 
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
+import no2.worldthreader.WorldThreaderMod;
 import no2.worldthreader.common.ServerWorldTicking;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
@@ -7,6 +11,7 @@ import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+
 import java.util.concurrent.Phaser;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,10 +20,14 @@ import java.util.concurrent.locks.LockSupport;
 
 public class WorldThreadingManager {
 
+	@SuppressWarnings("FieldMayBeFinal")
+    private static boolean DEBUG = true;
+
 	private final MinecraftServer server;
 	private final Phaser tickBarrier;
 	private final Phaser withinTickBarrier;
-	private final Reference2ReferenceLinkedOpenHashMap<Thread, ServerLevel> worldThreads;
+	private final Reference2ReferenceLinkedOpenHashMap<Thread, ResourceKey<Level>> worldThreads;
+	private final Reference2ReferenceOpenHashMap<Thread, ThreadOwnedObject[]> worldThreads2OwnedObjects;
 
 
 	private final AtomicInteger threadsRequestingExclusiveWorldAccess = new AtomicInteger();
@@ -37,15 +46,18 @@ public class WorldThreadingManager {
 		this.tickBarrier.register();
 
 		this.worldThreads = new Reference2ReferenceLinkedOpenHashMap<>();
+		this.worldThreads2OwnedObjects = new Reference2ReferenceOpenHashMap<>();
 
 		Iterable<ServerLevel> worlds = this.server.getAllLevels();
 		for (ServerLevel world : worlds) {
-			Thread worldThread = new Thread(() -> ServerWorldTicking.runWorldThread(server, this, world));
-			ThreadHelper.attach(worldThread, world);
+			ThreadOwnedObject[] worldThreadOwned = {((ThreadOwnedObject) world), (ThreadOwnedObject) world.getChunkSource()};
+			Thread worldThread = new Thread(() -> ServerWorldTicking.runWorldThread(server, this, world, worldThreadOwned));
+			ThreadHelper.setWorldThreadName(worldThread, world);
+			this.worldThreads2OwnedObjects.put(worldThread, worldThreadOwned);
 			//Insert the worlds in ticking order
-			this.worldThreads.put(worldThread, world);
+			this.worldThreads.put(worldThread, world.dimension());
 
-			this.tickBarrier.register();
+            this.tickBarrier.register();
 			this.withinTickBarrier.register();
 			worldThread.start();
 		}
@@ -82,20 +94,29 @@ public class WorldThreadingManager {
 		this.isMultiThreadedPhase = value;
 	}
 
-	public Reference2ReferenceLinkedOpenHashMap<Thread, ServerLevel> getWorldThreads() {
-		return this.worldThreads;
-	}
-
 	public boolean isWorldThread(Thread thread) {
 		return this.worldThreads.containsKey(thread);
 	}
 
-	public static boolean isThreadOwningWorld(ServerLevel world) {
-		return Thread.currentThread() == ((IThreadOwnedObject) world).getOwningThread();
+    public boolean isWorldThreadOf(ResourceKey<Level> dimension) {
+		return dimension.equals(this.worldThreads.get(Thread.currentThread()));
+	}
+
+    public boolean isWorldThreadOf(ServerLevel serverLevel) {
+		return this.isWorldThreadOf(serverLevel.dimension());
+	}
+
+	public static boolean isAccessibleForOtherThread(ServerLevel world) {
+		return Thread.currentThread() != ((ThreadOwnedObject) world).worldthreader$getOwningThread();
 	}
 
 	public static boolean isWorldAccessDenied(ServerLevel world) {
-		return ((MinecraftServerExtended) world.getServer()).worldthreader$isTickMultithreaded() && !WorldThreadingManager.isThreadOwningWorld(world);
+		return ((MinecraftServerExtended) world.getServer()).worldthreader$isTickMultithreaded() && WorldThreadingManager.isAccessibleForOtherThread(world);
+	}
+
+	public static boolean needsExclusiveAccessForWorld(ServerLevel world) {
+		WorldThreadingManager worldThreadingManager = ((MinecraftServerExtended) world.getServer()).worldthreader$getThreadingManager();
+		return worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase() && !worldThreadingManager.isWorldThreadOf(world);
 	}
 
 	public int tickBarrier() {
@@ -140,6 +161,17 @@ public class WorldThreadingManager {
 	public void waitForExclusiveWorldAccess() {
 		Thread currentThread = Thread.currentThread();
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
+
+		if (DEBUG) {
+			if (thread != currentThread) {
+                WorldThreaderMod.LOGGER.info("Thread {} is requesting exclusive world access", currentThread);
+				WorldThreaderMod.LOGGER.info("Current thread with exclusive world access: {}", thread);
+			} else {
+				WorldThreaderMod.LOGGER.info("Thread {} is using the exclusive world access again", currentThread);
+			}
+			WorldThreaderMod.LOGGER.info("Thread {} stacktrace:", currentThread);
+			new Exception().printStackTrace();
+		}
 		if (thread == currentThread) {
 			return;
 		}
@@ -160,12 +192,37 @@ public class WorldThreadingManager {
 			boolean allOtherThreadsWaiting = this.areAllThreadsInBarrierOrAccessRequest();
 			if (allOtherThreadsWaiting) {
 				//Now we have exclusive world access.
+				this.setOwnershipOfAllThreadOwnedObjects(currentThread);
+				if (DEBUG) {
+					WorldThreaderMod.LOGGER.info("Thread {} has acquired exclusive world access", currentThread.getName());
+					WorldThreaderMod.LOGGER.info("Total threads requesting exclusive world access: {}", this.threadsRequestingExclusiveWorldAccess.get());
+				}
 				return;
 			} else {
 				//Use parking instead of spin-locking for performance reasons
 				LockSupport.park(this);
 			}
 		}
+	}
+
+	private void setOwnershipOfAllThreadOwnedObjects(Thread currentThread) {
+		for (ThreadOwnedObject[] threadOwnedObjects : this.worldThreads2OwnedObjects.values()) {
+			for (ThreadOwnedObject threadOwnedObject : threadOwnedObjects) {
+				if (threadOwnedObject != null) {
+					threadOwnedObject.worldthreader$setOwningThread(currentThread);
+				}
+			}
+		}
+	}
+
+	private void resetOwnershipOfAllThreadOwnedObjects() {
+        this.worldThreads2OwnedObjects.forEach((key, threadOwnedObjects) -> {
+            for (ThreadOwnedObject threadOwnedObject : threadOwnedObjects) {
+                if (threadOwnedObject != null) {
+                    threadOwnedObject.worldthreader$setOwningThread(key);
+                }
+            }
+        });
 	}
 
 	private boolean areAllThreadsInBarrierOrAccessRequest() {
@@ -186,7 +243,12 @@ public class WorldThreadingManager {
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
 		if (thread != null) {
 			if (thread == Thread.currentThread()) {
-				this.threadsRequestingExclusiveWorldAccess.getAndDecrement();
+				this.resetOwnershipOfAllThreadOwnedObjects();
+				int andDecrement = this.threadsRequestingExclusiveWorldAccess.getAndDecrement();
+				if (DEBUG) {
+					WorldThreaderMod.LOGGER.info("Thread {} releasing exclusive world access", thread.getName());
+					WorldThreaderMod.LOGGER.info("Other threads waiting for exclusive world access: {}", andDecrement - 1);
+				}
 				this.threadWithExclusiveWorldAccess.set(null);
 				this.exclusiveWorldAccessLock.release();
 			} else {

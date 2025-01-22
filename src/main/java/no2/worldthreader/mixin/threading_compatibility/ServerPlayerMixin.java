@@ -31,7 +31,7 @@ public abstract class ServerPlayerMixin extends Player {
     private void serializeExecution(CallbackInfoReturnable<Set<ThrownEnderpearl>> cir) {
         if (this.getServer() != null && ((MinecraftServerExtended) this.getServer()).worldthreader$isTickMultithreaded()) {
             for (var pearl : this.enderPearls) {
-                if (!WorldThreadingManager.isThreadOwningWorld((ServerLevel) pearl.level())) {
+                if (WorldThreadingManager.isAccessibleForOtherThread((ServerLevel) pearl.level())) {
                     //Fallback to serial execution
                     this.getServer().getAllLevels();
                     return;

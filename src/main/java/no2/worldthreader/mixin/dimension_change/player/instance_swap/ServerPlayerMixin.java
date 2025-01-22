@@ -1,6 +1,7 @@
 package no2.worldthreader.mixin.dimension_change.player.instance_swap;
 
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -71,7 +72,7 @@ public abstract class ServerPlayerMixin {
             at = @At(value = "HEAD")
     )
     private void check(TeleportTransition teleportTransition, CallbackInfoReturnable<ServerPlayer> cir) {
-        if (DimensionChangeHelper.isDummy(teleportTransition)) {
+        if (DimensionChangeHelper.isDummy(teleportTransition) && !teleportTransition.asPassenger()) {
             throw new IllegalStateException("Worldthreader: Player teleported with dummy transition!");
         }
     }
@@ -223,6 +224,14 @@ public abstract class ServerPlayerMixin {
             slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;unsetRemoved()V"))
     )
     private ServerPlayer useNewPlayer15(ServerPlayer instance, int value, @Share("NewPlayer") LocalRef<ServerPlayer> newPlayerRef) {
+        return newPlayerRef.get();
+    }
+    @ModifyReturnValue(
+            method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
+            at = @At(value = "RETURN"),
+            slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;unsetRemoved()V"))
+    )
+    private ServerPlayer useNewPlayer16(ServerPlayer original, @Share("NewPlayer") LocalRef<ServerPlayer> newPlayerRef) {
         return newPlayerRef.get();
     }
 }
