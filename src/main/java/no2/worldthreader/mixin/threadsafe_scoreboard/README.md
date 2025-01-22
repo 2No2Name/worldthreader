@@ -16,4 +16,12 @@
   are used rarely. This implementation choice allows fast scoreboard team membership reads during the multithreading.
   This is crucial as many mobs cannot attack members of their own scoreboard team, which requires checking their own
   and the opponent's scoreboard team.
-- 
+- Objectives: Adding / Removing / Modifying objectives requires exclusive world access. These operations are very rare.
+- Entity scores:
+  - Adding / Removing scores is handled by using a ConcurrentHashMap
+  - Changing an existing score is handled as atomic operation or a non-atomic combination of atomic operations. This
+    is a middle ground between fast scoreboard operations and meaningful semantics of the operations. It is not
+    recommended to use the same scores with command blocks / command block minecarts from multiple dimensions in the
+    same tick. Otherwise, some operations (e.g. swapping two score values) may lead to wrong results.
+- Sending updates after modification: This seems broken at the moment, unclear why. However, this seems to be a visual
+  issue only.
