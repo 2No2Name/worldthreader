@@ -41,7 +41,7 @@ public class ServerWorldTicking {
     }
 
     public static void tickThreaded(MinecraftServer server, WorldThreadingManager worldThreadingManager, ServerLevel serverLevel) {
-        //TODO Issues mostly with Command Blocks: Setting Gamerules, Scoreboards, Time / Level Properties (Difficulty etc), Level Info is not threadsafe.
+        //TODO Issues mostly with Command Blocks: Level Properties, Level Info is not threadsafe.
 
         final BooleanSupplier shouldKeepTicking = worldThreadingManager::shouldKeepTickingThreaded;
 

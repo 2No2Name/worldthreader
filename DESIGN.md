@@ -11,7 +11,9 @@ The server player teleportation code is modified such that the level field is no
 As in vanilla, entities disappear when they teleport. In contrast to vanilla, the entities don't appear in the destination dimension immediately, but only at the end of the current tick.
 
 ## Scoreboard
-Threadsafe scoreboard is not implemented at this time, which is a major issue.
+
+Threadsafe implementation described
+in [README.md](src/main/java/no2/worldthreader/mixin/threadsafe_scoreboard/README.md)
 
 ## Non Vanilla Behaviors
 All of these are very niche and are unlikely to affect players and most technical contraptions. However, this document tries to achieve high transparency and list all changes.
@@ -31,5 +33,16 @@ In the following, entities means non-player entities. In vanilla, players telepo
 
 ## Considerations
 
-- Time command: Without changes already takes exclusive world access
-- 
+Several commands are made thread-safe for use in command blocks and command block minecarts. Entering the command in
+chat or in the server console does not happen during the world ticking, therefore no additional synchronization is
+needed.
+
+- Setting time requires exclusive world access
+- Setting gamerules requires exclusive world access
+- Setting world border requires exclusive world access
+- Setting weather requires exclusive world access
+
+## Observations
+
+- DimensionDataStorage is per-dimension in vanilla, but maps and some others are tied to overworld
+  - Crafter block scaling or locking a map in the nether or end takes exclusive world access

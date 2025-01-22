@@ -10,18 +10,18 @@
 - Scoreboard commands e.g. add 10 to player score don't update the scoreboard sidebar display
 
 ## Thread-safety
-- Ender pearls, everything about them
-- tick world border? world border commands -> DelegateBorderChangeListener
 - does cross world player pet teleportation exist?
-- calculatePassengerTransition - probably done already?
-- LevelData / Derived LevelData, e.g. command block using /difficulty
+- LevelData / Derived LevelData
 - Scoreboard uses broadcastAll -> player list is not threadsafe to access -> make player list threadsafe!
-- All levels use broadcastAll during weather tick ???
 
 ## Crashes
-- Player as passenger in cross dimension teleport
+
+- No known ones
+
 ## Bugs
-- Leashed entities stay leashed to player when player follows them through the portal -> kinda like that in vanilla too. Vanilla just has a different behavior when the player teleports and comes back
+
+- Leashed entities - player portal interaction is slightly different from vanilla. When the player goes through the
+  portal first, it fails to leash the mobs following the player.
 
 ## Check consequences of fixes
 - ServerPlayer is not newly created unless first time leaving the end
