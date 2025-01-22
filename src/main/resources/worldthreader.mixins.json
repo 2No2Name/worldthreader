@@ -30,6 +30,7 @@
     "dimension_change.player.instance_swap.ServerPlayerMixin",
     "dimension_change.recover_failure.EntityMixin",
     "dimension_change.recover_failure.MobEntityMixin",
+    "dimension_change.recover_failure.ServerPlayerMixin",
     "entity_id_wireless_redstone_fix.EntityMixin",
     "entity_id_wireless_redstone_fix.ServerWorldMixin",
     "exclusive_world_access.MinecraftServerMixin",

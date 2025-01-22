@@ -21,7 +21,6 @@ public interface EntityExtended {
 
     /**
      * Undo effects of failed teleportation attempts (Entity.removeAfterChangingDimensions, maybe others)
-     * //Medium todo check whether passengers and vehicles are restored properly
      */
     void worldthreader$restoreEntity(TeleportedEntityInfo teleportedEntity);
 

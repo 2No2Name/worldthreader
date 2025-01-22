@@ -1,17 +1,18 @@
 package no2.worldthreader.mixin.dimension_change.recover_failure;
 
-import net.minecraft.world.entity.Leashable;
-import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
-import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Leashable;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
+import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -43,6 +44,8 @@ public abstract class MobEntityMixin extends Entity implements EntityExtended {
             }
 
             this.worldthreader$restoreEquipment(nbt);
+
+            ((ServerLevel) this.level()).addDuringTeleport(this);
         }
     }
 

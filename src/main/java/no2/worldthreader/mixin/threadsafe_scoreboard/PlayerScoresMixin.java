@@ -51,17 +51,15 @@ public class PlayerScoresMixin {
     @Redirect(
             method = "getOrCreate", at = @At(value = "INVOKE", target = "Lit/unimi/dsi/fastutil/objects/Reference2ObjectOpenHashMap;computeIfAbsent(Ljava/lang/Object;Lit/unimi/dsi/fastutil/objects/Reference2ObjectFunction;)Ljava/lang/Object;", remap = false)
     )
-    private <K,V> V useThreadsafeMap(Reference2ObjectOpenHashMap<K, V> instance, K key, Reference2ObjectFunction<? super K, ? extends V> mappingFunction){
-        //noinspection unchecked
-        return (V) this.scoresThreadsafe.computeIfAbsent((Objective) key, obj -> (Score) mappingFunction.get(obj));
+    private <K, V> Object useThreadsafeMap(Reference2ObjectOpenHashMap<K, V> instance, K key, Reference2ObjectFunction<? super K, ? extends V> mappingFunction) {
+        return this.scoresThreadsafe.computeIfAbsent((Objective) key, obj -> (Score) mappingFunction.get(obj));
     }
 
     @Redirect(
             method = "listScores", at = @At(value = "INVOKE", target = "Lit/unimi/dsi/fastutil/objects/Reference2ObjectOpenHashMap;forEach(Ljava/util/function/BiConsumer;)V", remap = false)
     )
-    private <K,V> void useThreadsafeMap(Reference2ObjectOpenHashMap<K,V> instance, BiConsumer<K,V> biConsumer){
-        //noinspection unchecked
-        this.scoresThreadsafe.forEach((objective, score) -> biConsumer.accept((K) objective, (V) score));
+    private <K, V> void useThreadsafeMap(Reference2ObjectOpenHashMap<K, V> instance, BiConsumer<Object, Object> biConsumer) {
+        this.scoresThreadsafe.forEach(biConsumer);
     }
     @ModifyArg(
             method = "listRawScores", at = @At(value = "INVOKE", target = "Ljava/util/Collections;unmodifiableMap(Ljava/util/Map;)Ljava/util/Map;")

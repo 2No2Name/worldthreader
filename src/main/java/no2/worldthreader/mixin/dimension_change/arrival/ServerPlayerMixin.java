@@ -34,14 +34,23 @@ public abstract class ServerPlayerMixin {
             method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;isRemoved()Z")
     )
-    private boolean isRemovedAndNotArrivalPhase(boolean original, @Local(argsOnly = true) TeleportTransition teleportTransition, @Share("isArrival") LocalBooleanRef isMultithreadedPassengerArrival) {
+    private boolean isRemovedAndNotArrivalPhase(boolean original, @Local(argsOnly = true) TeleportTransition teleportTransition, @Share("isArrival") LocalBooleanRef isMultithreadedPassengerArrival, @Share("isRecovery") LocalBooleanRef isRecovery) {
         if (!DimensionChangeHelper.isDummy(teleportTransition) && WorldThreadingManager.isMultithreadingAndCorrectThreadForWorld(teleportTransition.newLevel())) {
-            if (!teleportTransition.asPassenger() || this.serverLevel() == teleportTransition.newLevel()) {
+            if (!teleportTransition.asPassenger()) {
+                throw new IllegalStateException("Worldthreader: On destination world teleport call only expected for cross-world passenger player teleports!");
+            } else if (this.serverLevel() == teleportTransition.newLevel()) {
+                if (WorldThreadingManager.isRecoveringTeleports(teleportTransition.newLevel())) {
+                    isRecovery.set(true);
+                    isMultithreadedPassengerArrival.set(false);
+                    return false;
+                }
                 throw new IllegalStateException("Worldthreader: On destination world teleport call only expected for cross-world passenger player teleports!");
             }
+            isRecovery.set(false);
             isMultithreadedPassengerArrival.set(true);
             return false;
         }
+        isRecovery.set(false);
         isMultithreadedPassengerArrival.set(false);
         return original;
     }
@@ -50,8 +59,8 @@ public abstract class ServerPlayerMixin {
             method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/portal/TeleportTransition;missingRespawnBlock()Z")
     )
-    private boolean isMissingRespawnBlockAndNotArrivalPhase(boolean original, @Share("isArrival") LocalBooleanRef isMultithreadedPassengerArrival) {
-        return original && !isMultithreadedPassengerArrival.get();
+    private boolean isMissingRespawnBlockAndNotArrivalPhase(boolean original, @Share("isArrival") LocalBooleanRef isMultithreadedPassengerArrival, @Share("isRecovery") LocalBooleanRef isRecovery) {
+        return original && !isMultithreadedPassengerArrival.get() && !isRecovery.get();
     }
 
     @WrapOperation(
@@ -99,7 +108,7 @@ public abstract class ServerPlayerMixin {
             )
     )
     private boolean sendPlayerPermissionLevelIfDeparture(PlayerList instance, ServerPlayer serverPlayer, @Share("isArrival") LocalBooleanRef isMultithreadedPassengerArrival) {
-        return !isMultithreadedPassengerArrival.get();
+        return !isMultithreadedPassengerArrival.get(); //TODO decide @Share("isRecovery") LocalBooleanRef isRecovery
     }
 
     @WrapWithCondition(
@@ -113,7 +122,7 @@ public abstract class ServerPlayerMixin {
                     to = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;unsetRemoved()V")
             )
     )
-    private boolean unsetRemovedIfDeparture(ServerLevel instance, ServerPlayer serverPlayer, Entity.RemovalReason removalReason, @Share("isArrival") LocalBooleanRef isMultithreadedPassengerArrival) {
-        return !isMultithreadedPassengerArrival.get();
+    private boolean removePlayerImmediatelyIfDeparture(ServerLevel instance, ServerPlayer serverPlayer, Entity.RemovalReason removalReason, @Share("isArrival") LocalBooleanRef isMultithreadedPassengerArrival, @Share("isRecovery") LocalBooleanRef isRecovery) {
+        return !isMultithreadedPassengerArrival.get() && !isRecovery.get();
     }
 }

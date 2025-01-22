@@ -23,7 +23,7 @@ import java.util.Objects;
 @Mixin(NetherPortalBlock.class)
 public abstract class NetherPortalBlockMixin implements Portal {
 
-    //TODO: getPortalDestination must be called with the old entity but then some checks like powersnow leather shoes for placement / Entity shape context could be wrong, as the armor/hand items are gone already
+    //TODO: getPortalDestination must be called with the old entity but then some checks like powder snow leather shoes for placement / Entity shape context could be wrong, as the armor/hand items are gone already
     /**
      * Fixes deadlock when an entity teleports using a nether portal to another dimension during the world tick.
      * Without this the source world would be accessed when arriving in the destination world on the destination's thread.

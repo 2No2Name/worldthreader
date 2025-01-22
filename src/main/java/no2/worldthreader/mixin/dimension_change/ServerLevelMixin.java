@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.storage.WritableLevelData;
+import no2.worldthreader.common.WorldThreaderTickPhase;
 import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
@@ -33,6 +34,8 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
     private TeleportedEntityInfo currentlyArrivingEntity;
     @Unique
     private TeleportedEntityInfo currentlyDepartingPassenger;
+    @Unique
+    private WorldThreaderTickPhase tickPhase = WorldThreaderTickPhase.NONE;
 
     protected ServerLevelMixin(WritableLevelData writableLevelData, ResourceKey<Level> resourceKey, RegistryAccess registryAccess, Holder<DimensionType> holder, boolean bl, boolean bl2, long l, int i) {
         super(writableLevelData, resourceKey, registryAccess, holder, bl, bl2, l, i);
@@ -100,5 +103,15 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
             throw new IllegalStateException("Worldthreader: Another entity is already departing from this level!");
         }
         this.currentlyDepartingPassenger = teleportedEntityInfo;
+    }
+
+    @Override
+    public WorldThreaderTickPhase worldthreader$getTickPhase() {
+        return tickPhase;
+    }
+
+    @Override
+    public void worldthreader$setTickPhase(WorldThreaderTickPhase tickPhase) {
+        this.tickPhase = tickPhase;
     }
 }

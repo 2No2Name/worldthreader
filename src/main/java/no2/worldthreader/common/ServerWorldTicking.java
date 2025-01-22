@@ -58,19 +58,23 @@ public class ServerWorldTicking {
             profilerFiller.push("tick");
 
             crashReason = "Exception ticking world";
+            ((ServerWorldExtended) serverLevel).worldthreader$setTickPhase(WorldThreaderTickPhase.WORLD_TICK);
             serverLevel.tick(shouldKeepTicking);
 
             crashReason = "Exception receiving entities from other worlds";
             worldThreadingManager.withinTickBarrier();
+            ((ServerWorldExtended) serverLevel).worldthreader$setTickPhase(WorldThreaderTickPhase.RECEIVE_TELEPORTS);
             finishTeleportsToWorld(serverLevel);
 
             crashReason = "Exception restoring entities that could not be teleported to another world";
             worldThreadingManager.withinTickBarrier();
+            ((ServerWorldExtended) serverLevel).worldthreader$setTickPhase(WorldThreaderTickPhase.RECOVER_FAILED_TELEPORTS);
             recoverFailedTeleports(serverLevel);
 
             crashReason = "Exception in server world thread";
             //Additional barrier here fixes the issue where one thread taking exclusive ownership during recoverFailedTeleports causes other threads crash due to ownership not being handed back before trying to give ownership to the main thread
             worldThreadingManager.withinTickBarrier();
+            ((ServerWorldExtended) serverLevel).worldthreader$setTickPhase(WorldThreaderTickPhase.NONE);
 
             profilerFiller.pop();
             profilerFiller.pop();

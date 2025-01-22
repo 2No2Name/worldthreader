@@ -2,9 +2,11 @@ package no2.worldthreader.mixin.dimension_change.recover_failure;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Leashable;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.level.Level;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +19,10 @@ public abstract class EntityMixin implements EntityExtended {
 
     @Shadow protected abstract void unsetRemoved();
 
-    @Override
+	@Shadow
+	public abstract Level level();
+
+	@Override
 	public void worldthreader$restoreEntity(TeleportedEntityInfo teleportedEntity) {
 		if (this.getRemovalReason() == Entity.RemovalReason.CHANGED_DIMENSION) {
 			this.unsetRemoved();
@@ -27,7 +32,7 @@ public abstract class EntityMixin implements EntityExtended {
 				leashable.readLeashData(nbt);
 			}
 
-            //TODO (test and) fix passenger and vehicle relations
+			((ServerLevel) this.level()).addDuringTeleport((Entity) (Object) this);
 		}
 	}
 }

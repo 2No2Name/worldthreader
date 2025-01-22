@@ -10,7 +10,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.WorldThreaderMod;
 import no2.worldthreader.common.ServerWorldTicking;
+import no2.worldthreader.common.WorldThreaderTickPhase;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
+import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
 
 import java.util.concurrent.Phaser;
 import java.util.concurrent.Semaphore;
@@ -84,6 +86,10 @@ public class WorldThreadingManager {
 			return thread == currentThread;
 		}
 		return true;
+	}
+
+	public static boolean isRecoveringTeleports(ServerLevel newLevel) {
+		return isMultithreadingAndCorrectThreadForWorld(newLevel) && ((ServerWorldExtended) newLevel).worldthreader$getTickPhase() == WorldThreaderTickPhase.RECOVER_FAILED_TELEPORTS;
 	}
 
 	public boolean isMultiThreadedPhase() {

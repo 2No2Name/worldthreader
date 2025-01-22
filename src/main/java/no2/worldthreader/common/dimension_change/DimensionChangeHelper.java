@@ -11,6 +11,8 @@ import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
 import no2.worldthreader.init.ModGameRules;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class DimensionChangeHelper {
@@ -74,11 +76,20 @@ public class DimensionChangeHelper {
         //TODO trigger fabric-entity-events-v1.afterWorldChanged here
     }
 
-    public static void restoreEntityInWorld(TeleportedEntityInfo entityInfo) {
+    public static Entity restoreEntityInWorld(TeleportedEntityInfo entityInfo) {
+        List<TeleportedEntityInfo> passengerInfos = Objects.requireNonNullElse(entityInfo.passengers(), List.of());
+
+        List<Entity> passengers = new ArrayList<>(passengerInfos.size());
+        for (TeleportedEntityInfo passenger : passengerInfos) {
+            passengers.add(restoreEntityInWorld(passenger));
+        }
+
         Entity entity = entityInfo.oldEntityObject();
         ((EntityExtended) entity).worldthreader$restoreEntity(entityInfo);
-        if (!entity.isRemoved()) { //Avoid adding entities that were removed for another reason, e.g. falling sand that landed or mobs that died
-            ((ServerLevel) entity.level()).addWithUUID(entity);
+
+        for (Entity passenger : passengers) {
+            passenger.startRiding(entity);
         }
+        return entity;
     }
 }

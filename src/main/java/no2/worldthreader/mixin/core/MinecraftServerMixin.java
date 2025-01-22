@@ -1,10 +1,10 @@
 package no2.worldthreader.mixin.core;
 
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import no2.worldthreader.init.ModGameRules;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -97,8 +97,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 
 	@Override
 	public boolean worldthreader$shouldKeepTickingThreaded() {
-		//TODO confirm this implementation does not cause issues (unclear semantics / missing memory visibility guarantees)
-		// either this is correct or a really weird condition, as it uses the main thread's timing for the worker thread, which probably kinda works but might not be threadsafe
+		// It is fine to do this as the main thread does not work on its tasks while the world threads are ticking
 		return this.haveTime();
 	}
 }
