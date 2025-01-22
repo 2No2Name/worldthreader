@@ -12,13 +12,11 @@ import net.minecraft.world.level.block.Portal;
 import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
-import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
 import no2.worldthreader.common.thread.ThreadLocals;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -26,7 +24,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import no2.worldthreader.common.tuples.Pair;
-import no2.worldthreader.common.tuples.Triplet;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -38,7 +35,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin implements EntityExtended {
@@ -49,35 +45,7 @@ public abstract class EntityMixin implements EntityExtended {
 
 	@Shadow @Nullable public PortalProcessor portalProcess;
 
-	@Redirect(
-			method = "handlePortal()V",
-			at = @At(
-					value = "INVOKE",
-					target = "Lnet/minecraft/world/level/portal/TeleportTransition;newLevel()Lnet/minecraft/server/level/ServerLevel;"
-			)
-	)
-	private ServerLevel getLevelFromDummy(TeleportTransition teleportTransition) {
-		if (DimensionChangeHelper.isDummy(teleportTransition)) {
-			ResourceKey<Level> destinationWorldKey = DimensionChangeHelper.getDestinationFromNonPassengerDummyElseNull(teleportTransition);
-			return ((MinecraftServerExtended) Objects.requireNonNull(this.level().getServer())).worldthreader$getLevelUnsynchronized(Objects.requireNonNull(destinationWorldKey));
-		}
-		return teleportTransition.newLevel();
-	}
-
-	@Redirect(
-			method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
-			at = @At(
-					value = "INVOKE",
-					target = "Lnet/minecraft/world/level/portal/TeleportTransition;newLevel()Lnet/minecraft/server/level/ServerLevel;"
-			)
-	)
-	private ServerLevel getLevelFromDummy1(TeleportTransition teleportTransition) {
-		if (DimensionChangeHelper.isDummy(teleportTransition)) {
-			ResourceKey<Level> destinationWorldKey = DimensionChangeHelper.getDestinationFromNonPassengerDummyElseNull(teleportTransition);
-			return ((MinecraftServerExtended) Objects.requireNonNull(this.level().getServer())).worldthreader$getLevelUnsynchronized(Objects.requireNonNull(destinationWorldKey));
-		}
-		return teleportTransition.newLevel();
-	}
+	@Shadow protected abstract TeleportTransition calculatePassengerTransition(TeleportTransition teleportTransition, Entity entity);
 
 	@ModifyExpressionValue(
 			method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
@@ -89,6 +57,17 @@ public abstract class EntityMixin implements EntityExtended {
 		}
         return isPassenger;
     }
+
+	@Redirect(
+			method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;calculatePassengerTransition(Lnet/minecraft/world/level/portal/TeleportTransition;Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/world/level/portal/TeleportTransition;")
+	)
+	private TeleportTransition getDummyPassengerTransition(Entity instance, TeleportTransition teleportTransition, Entity entity) {
+		if (DimensionChangeHelper.isDummy(teleportTransition)) {
+			return teleportTransition.transitionAsPassenger();
+		}
+		return ((EntityMixin) (Object) instance).calculatePassengerTransition(teleportTransition, entity);
+	}
 
 
 	@Unique
@@ -138,8 +117,7 @@ public abstract class EntityMixin implements EntityExtended {
 			cir.setReturnValue(null);
 			DimensionChangeHelper.expectDummy(teleportTransition);
 
-			ResourceKey<Level> dest = DimensionChangeHelper.getDestinationFromNonPassengerDummyElseNull(teleportTransition);
-			boolean isPassenger = dest == null;
+			boolean isPassenger = teleportTransition.asPassenger();
 
 			CompoundTag entityNBT = copyFromToNBT((Entity) (Object) this);
 			Direction.Axis portalAxis = null;

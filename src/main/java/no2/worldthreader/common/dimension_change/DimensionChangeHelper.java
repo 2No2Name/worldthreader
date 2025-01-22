@@ -5,24 +5,14 @@ import net.minecraft.world.level.portal.TeleportTransition;
 import no2.worldthreader.common.ServerWorldTicking;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
 import no2.worldthreader.init.ModGameRules;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class DimensionChangeHelper {
-
-    public static final ConcurrentHashMap<ResourceKey<Level>, TeleportTransition> NON_PASSENGER_DUMMY_TARGETS = new ConcurrentHashMap<>();
-    public static final ConcurrentHashMap<TeleportTransition, ResourceKey<Level>> NON_PASSENGER_DUMMY_TARGETS_REVERSE = new ConcurrentHashMap<>();
-
-    public static ResourceKey<Level> getDestinationFromNonPassengerDummyElseNull(TeleportTransition teleportTransition) {
-        return NON_PASSENGER_DUMMY_TARGETS_REVERSE.get(teleportTransition);
-    }
 
     public static boolean isDummy(TeleportTransition teleportTransition) {
         //noinspection resource,ConstantValue
@@ -36,13 +26,7 @@ public class DimensionChangeHelper {
     }
 
     public static TeleportTransition getNonPassengerDummyTeleportTarget(ServerLevel destination) {
-        return NON_PASSENGER_DUMMY_TARGETS.computeIfAbsent(
-                destination.dimension(),
-                key -> {
-                    TeleportTransition teleportTarget = new TeleportTransition(destination, null, null, 0.0f, 0.0f, false, false, null, null);
-                    NON_PASSENGER_DUMMY_TARGETS_REVERSE.put(teleportTarget, key);
-                    return teleportTarget;
-        });
+        return new TeleportTransition(destination, null, null, 0.0f, 0.0f, false, false, null, null);
     }
 
     public static void nonPassengerArriveInWorld(TeleportedEntityInfo teleportedEntityInfo, Entity oldEntityObject, ServerLevel destination, ServerLevel source) {
@@ -78,6 +62,7 @@ public class DimensionChangeHelper {
 
         ((EntityExtended) newEntity).worldthreader$onArrivedInServerWorld(destination.dimension(), source.dimension());
         return newEntity;
+        //TODO trigger fabric-entity-events-v1.afterWorldChanged here
     }
 
     public static void restoreEntityInWorld(TeleportedEntityInfo entityInfo) {
