@@ -29,6 +29,5 @@ public abstract class EntityMixin implements EntityExtended {
 
             //TODO (test and) fix passenger and vehicle relations
 		}
-        //TODO implement for ender pearls
 	}
 }

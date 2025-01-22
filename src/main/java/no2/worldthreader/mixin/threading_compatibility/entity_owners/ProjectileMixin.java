@@ -54,7 +54,7 @@ public abstract class ProjectileMixin extends Entity implements TraceableEntity,
             method =  {"setOwner(Lnet/minecraft/world/entity/Entity;)V", "setOwnerThroughUUID(Ljava/util/UUID;)V", "getOwner()Lnet/minecraft/world/entity/Entity;", "restoreFrom(Lnet/minecraft/world/entity/Entity;)V"}, require = 4,
             at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/projectile/Projectile;cachedOwner:Lnet/minecraft/world/entity/Entity;", opcode = Opcodes.PUTFIELD)
     )
-    public void setCachedOwnerWrapped(Projectile theProjectile, Entity cachedOwner) {
+    public void setCachedOwnerWrapped(Projectile theProjectile, Entity cachedOwner) { //Overwritten by ThrownEnderpearlMixin
         ((ProjectileMixin) (Object) theProjectile).cachedOwner = cachedOwner;
     }
 }
