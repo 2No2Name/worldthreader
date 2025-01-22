@@ -108,7 +108,7 @@ public abstract class ServerPlayerMixin {
             )
     )
     private boolean sendPlayerPermissionLevelIfDeparture(PlayerList instance, ServerPlayer serverPlayer, @Share("isArrival") LocalBooleanRef isMultithreadedPassengerArrival) {
-        return !isMultithreadedPassengerArrival.get(); //TODO decide @Share("isRecovery") LocalBooleanRef isRecovery
+        return !isMultithreadedPassengerArrival.get();
     }
 
     @WrapWithCondition(

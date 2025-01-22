@@ -28,3 +28,8 @@ In the following, entities means non-player entities. In vanilla, players telepo
 - Entities that are teleported to another dimension via command blocks or command block minecarts similarly arrive at the end of the tick. This of course also affects other commands which might try to access the entity immediately after the teleport command is executed.
 - Entities that fail to teleport to another dimension due to a missing destination portal or similar are first removed from the world and then added back to the world at the end of the tick after successfully teleported entities arrived. This might affect several game mechanics, but failed teleport attempts are rare as since Minecraft 1.21 all entities that can teleport through nether portals can create nether portals.
 - Vanilla's dispenser bug where the dispenser failure sound is played incorrectly when using a brush on an armadillo after a dispenser failed to brush an armadillo behaves differently, as the condition "after a dispenser failed to brush an armadillo" is evaluated per-dimension with worldthreader.
+
+## Considerations
+
+- Time command: Without changes already takes exclusive world access
+- 

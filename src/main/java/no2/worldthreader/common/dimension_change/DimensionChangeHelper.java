@@ -73,7 +73,7 @@ public class DimensionChangeHelper {
 
         ((EntityExtended) newEntity).worldthreader$onArrivedInServerWorld(destination.dimension(), source.dimension());
         return newEntity;
-        //TODO trigger fabric-entity-events-v1.afterWorldChanged here
+        //Small TODO trigger fabric-entity-events-v1.afterWorldChanged here
     }
 
     public static Entity restoreEntityInWorld(TeleportedEntityInfo entityInfo) {
