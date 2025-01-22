@@ -65,11 +65,17 @@ public abstract class PlayerListMixin implements TransparentServerPlayerSwapper 
         if (newPlayer.getPortalCooldown() != previousPlayer.getPortalCooldown()) {
             newPlayer.setPortalCooldown(previousPlayer.getPortalCooldown());
         }
-//        if (newPlayer.enderPearls) //TODO
+        if (newPlayer.enderPearls.isEmpty() && !previousPlayer.enderPearls.isEmpty()) {
+            for (var enderpearl : previousPlayer.enderPearls) {
+                newPlayer.registerEnderPearl(enderpearl);
+                //Setting the owner in the enderpearl might be a good idea as well, but since worldthreader
+                // modifies the getOwner function such that the outdated previous value is immediately replaced on
+                // access, it doesn't make a difference (unless other mods directly use the field)
+            }
+        }
 
-        //Others like this might be relevant but hard to track down, not doing it for now
+        //Others fields like this might be relevant but hard to track down, not doing it for now
 //        newPlayer.startingToFallPosition = previousPlayer.startingToFallPosition;
-        //TODO check the set of enderpearls and the other somewhat important fields (which though?)
 
         return newPlayer;
     }
