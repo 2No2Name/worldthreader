@@ -42,6 +42,9 @@ needed.
 - Setting world border requires exclusive world access
 - Setting weather requires exclusive world access
 
+The server player list is used in many places. Most of it is threadsafe, as it is exclusively modified outside the
+world tick. However, certain commands (e.g. adding a player to the whitelist) need exclusive world access.
+
 ## Observations
 
 - DimensionDataStorage is per-dimension in vanilla, but maps and some others are tied to overworld

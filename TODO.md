@@ -4,15 +4,17 @@
 - Find a way to systematically determine whether there are thread-safety issues, including with other mods
 - Run some tests to see if there is a performance benefit to using the mod (or is there always a fallback to serial execution in every tick)
 
-## Update Mod to newer versions
-- Check tickrate manager -> probably fine, if it is broken the game never recover as soon as tick freeze is used
+## Things to check
 - Serverlevel.emptyTime is reset by teleports, probably slightly different from vanilla (off by one tick? does it matter -> not really)
-- Scoreboard commands e.g. add 10 to player score don't update the scoreboard sidebar display
+- Check the list of all commands for possible cross-world access or writes to shared data
 
 ## Thread-safety
-- does cross world player pet teleportation exist?
-- LevelData / Derived LevelData
-- Scoreboard uses broadcastAll -> player list is not threadsafe to access -> make player list threadsafe!
+
+- Does cross world player pet teleportation exist?
+- PrimaryLevelData changes
+- The server player list is used in many places. Most of it is threadsafe, as it is exclusively modified outside the
+  world tick. However, certain commands (e.g. adding a player to the whitelist) need exclusive world access.
+- Tick command needs exclusive access
 
 ## Crashes
 
