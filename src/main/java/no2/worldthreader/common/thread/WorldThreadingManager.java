@@ -21,7 +21,7 @@ import java.util.concurrent.locks.LockSupport;
 public class WorldThreadingManager {
 
 	@SuppressWarnings("FieldMayBeFinal")
-    private static boolean DEBUG = true;
+	private static boolean DEBUG = false;
 
 	private final MinecraftServer server;
 	private final Phaser tickBarrier;
@@ -244,7 +244,7 @@ public class WorldThreadingManager {
 		return totalThreads == arrivedParties;
 	}
 
-	private void tryGiveAwayExclusiveWorldAccess() {
+	public void tryGiveAwayExclusiveWorldAccess() {
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
 		if (thread != null) {
 			if (thread == Thread.currentThread()) {

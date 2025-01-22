@@ -32,7 +32,7 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
     @Unique
     private TeleportedEntityInfo currentlyArrivingEntity;
     @Unique
-    private TeleportedEntityInfo currentlyDepartingEntity;
+    private TeleportedEntityInfo currentlyDepartingPassenger;
 
     protected ServerLevelMixin(WritableLevelData writableLevelData, ResourceKey<Level> resourceKey, RegistryAccess registryAccess, Holder<DimensionType> holder, boolean bl, boolean bl2, long l, int i) {
         super(writableLevelData, resourceKey, registryAccess, holder, bl, bl2, l, i);
@@ -89,16 +89,16 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
 
     @Override
     public TeleportedEntityInfo worldthreader$removeDepartingEntityInfo() {
-        TeleportedEntityInfo entityInfo = this.currentlyDepartingEntity;
-        this.currentlyArrivingEntity = null;
+        TeleportedEntityInfo entityInfo = this.currentlyDepartingPassenger;
+        this.currentlyDepartingPassenger = null;
         return entityInfo;
     }
 
     @Override
-    public void worldthreader$putDepartingEntityInfo(TeleportedEntityInfo teleportedEntityInfo) {
-        if (this.currentlyDepartingEntity != null) {
+    public void worldthreader$putDepartingPassengerEntityInfo(TeleportedEntityInfo teleportedEntityInfo) {
+        if (this.currentlyDepartingPassenger != null) {
             throw new IllegalStateException("Worldthreader: Another entity is already departing from this level!");
         }
-        this.currentlyDepartingEntity = teleportedEntityInfo;
+        this.currentlyDepartingPassenger = teleportedEntityInfo;
     }
 }

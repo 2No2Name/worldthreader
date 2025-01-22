@@ -13,6 +13,7 @@
     "dimension_change.arrival.EntityMixin",
     "dimension_change.arrival.ItemEntityMixin",
     "dimension_change.arrival.NetherPortalBlockMixin",
+    "dimension_change.arrival.PlayerListMixin",
     "dimension_change.arrival.PrimedTntMixin",
     "dimension_change.arrival.ServerPlayerMixin",
     "dimension_change.arrival.ThrownEnderpearlMixin",

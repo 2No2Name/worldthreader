@@ -20,5 +20,5 @@ public interface ServerWorldExtended {
 
     TeleportedEntityInfo worldthreader$removeDepartingEntityInfo();
 
-    void worldthreader$putDepartingEntityInfo(TeleportedEntityInfo teleportedEntityInfo);
+    void worldthreader$putDepartingPassengerEntityInfo(TeleportedEntityInfo teleportedEntityInfo);
 }

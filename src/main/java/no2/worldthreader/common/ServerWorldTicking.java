@@ -1,15 +1,16 @@
 package no2.worldthreader.common;
 
-import net.minecraft.util.profiling.Profiler;
-import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
-import no2.worldthreader.common.thread.ThreadOwnedObject;
-import no2.worldthreader.common.thread.ThreadHelper;
-import no2.worldthreader.common.thread.WorldThreadingManager;
 import net.minecraft.CrashReport;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.storage.DerivedLevelData;
+import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
+import no2.worldthreader.common.thread.ThreadHelper;
+import no2.worldthreader.common.thread.ThreadOwnedObject;
+import no2.worldthreader.common.thread.WorldThreadingManager;
+
 import java.util.function.BooleanSupplier;
 
 public class ServerWorldTicking {
@@ -44,6 +45,7 @@ public class ServerWorldTicking {
 
         final BooleanSupplier shouldKeepTicking = worldThreadingManager::shouldKeepTickingThreaded;
 
+        String crashReason = "Exception in server world thread";
         try {
             // [VanillaCopy] MinecraftServer#tickChildren
             ProfilerFiller profilerFiller = Profiler.get();
@@ -54,37 +56,35 @@ public class ServerWorldTicking {
                 profilerFiller.pop();
             }
             profilerFiller.push("tick");
-            try {
-                serverLevel.tick(shouldKeepTicking);
-            } catch (Throwable throwable) {
-                delegateCrash(throwable, "Exception ticking world", serverLevel, worldThreadingManager);
-            }
 
-            try {
-                worldThreadingManager.withinTickBarrier();
-                finishTeleportsToWorld(serverLevel);
-            } catch (Throwable throwable) {
-                delegateCrash(throwable, "Exception receiving entities from other worlds", serverLevel, worldThreadingManager);
-            }
+            crashReason = "Exception ticking world";
+            serverLevel.tick(shouldKeepTicking);
 
-            try {
-                worldThreadingManager.withinTickBarrier();
-                recoverFailedTeleports(serverLevel);
-            } catch (Throwable throwable) {
-                delegateCrash(throwable, "Exception restoring entities that could not be teleported to another world", serverLevel, worldThreadingManager);
-            }
+            crashReason = "Exception receiving entities from other worlds";
+            worldThreadingManager.withinTickBarrier();
+            finishTeleportsToWorld(serverLevel);
+
+            crashReason = "Exception restoring entities that could not be teleported to another world";
+            worldThreadingManager.withinTickBarrier();
+            recoverFailedTeleports(serverLevel);
+
+            crashReason = "Exception in server world thread";
+            //Additional barrier here fixes the issue where one thread taking exclusive ownership during recoverFailedTeleports causes other threads crash due to ownership not being handed back before trying to give ownership to the main thread
+            worldThreadingManager.withinTickBarrier();
+
             profilerFiller.pop();
             profilerFiller.pop();
         } catch (Throwable throwable) {
-            delegateCrash(throwable, "Exception in server world thread", serverLevel, worldThreadingManager);
+            delegateCrash(throwable, crashReason, serverLevel, worldThreadingManager);
         }
     }
 
     private static void delegateCrash(Throwable throwable, String title, ServerLevel serverWorld, WorldThreadingManager worldThreadingManager) {
+        worldThreadingManager.tryGiveAwayExclusiveWorldAccess(); //If the exception was thrown while this thread held exclusive access, it must be returned.
+
         CrashReport crashReport = CrashReport.forThrowable(throwable, title);
         serverWorld.fillReportDetails(crashReport);
         worldThreadingManager.handleCrash(crashReport);
-
     }
 
     public static void finishTeleportsToWorld(ServerLevel world) {

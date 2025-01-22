@@ -4,6 +4,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+import net.minecraft.world.entity.vehicle.MinecartCommandBlock;
 import net.minecraft.world.level.portal.TeleportTransition;
 import no2.worldthreader.common.ServerWorldTicking;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
@@ -44,7 +45,7 @@ public class DimensionChangeHelper {
 
         Entity newEntity = arriveIntoWorld(teleportedEntityInfo, oldEntityObject, destination, source, teleportTransition);
 
-        if (ModGameRules.SHOULD_TICK_ENTITY_AFTER_TELEPORT && ServerWorldTicking.isMainWorld(destination)) {
+        if (ModGameRules.SHOULD_TICK_ENTITY_AFTER_TELEPORT && ServerWorldTicking.isMainWorld(destination) && !(newEntity instanceof MinecartCommandBlock)) { //Disallow for commmand block minecarts for now, since server player arrival depends on reading the world border being threadsafe
             newEntity.tick();
             //Small todo: maybe use a collection and then tick all of the ones in the collection, avoids issue where the others didn't arrive yet and thus no interaction takes place (would only avoid this for the teleported ones though)
         }

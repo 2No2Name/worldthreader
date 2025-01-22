@@ -141,7 +141,7 @@ public abstract class EntityMixin implements EntityExtended {
 			this.worldthreader$onEntityDepartsFromServerWorld(destination.dimension(), this.level().dimension());
 
 			if (isPassenger) {
-				((ServerWorldExtended) this.level()).worldthreader$putDepartingEntityInfo(entityInfo);
+				((ServerWorldExtended) this.level()).worldthreader$putDepartingPassengerEntityInfo(entityInfo);
 			} else {
                 ((ServerWorldExtended) destination).worldthreader$receiveTeleportedEntity(this.level().dimension(), entityInfo);
             }

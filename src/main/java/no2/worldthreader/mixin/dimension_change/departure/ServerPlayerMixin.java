@@ -40,8 +40,6 @@ public abstract class ServerPlayerMixin implements EntityExtended {
     private void convertSelfToTeleportedEntityInfo(TeleportTransition teleportTransition, CallbackInfoReturnable<ServerPlayer> cir) {
         if (DimensionChangeHelper.isDummy(teleportTransition)) {
 
-            cir.setReturnValue(null);
-
             if (!WorldThreadingManager.isWrongThreadForWorld(teleportTransition.newLevel()) || !teleportTransition.asPassenger()) {
                 throw new IllegalStateException("Worldthreader: Dummy transition only expected for passenger player teleports on departure level thread!");
             }
@@ -51,7 +49,9 @@ public abstract class ServerPlayerMixin implements EntityExtended {
             //This doesn't do anything for players for now, but for called consistency with Entity teleportation code
             this.worldthreader$onEntityDepartsFromServerWorld(teleportTransition.newLevel().dimension(), this.serverLevel().dimension());
 
-            ((ServerWorldExtended) this.serverLevel()).worldthreader$putDepartingEntityInfo(entityInfo);
+            ((ServerWorldExtended) this.serverLevel()).worldthreader$putDepartingPassengerEntityInfo(entityInfo);
+
+            cir.setReturnValue(null);
         }
     }
 }
