@@ -3,7 +3,6 @@ package no2.worldthreader.common.dimension_change;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.projectile.ThrownEnderpearl;
 import net.minecraft.world.entity.vehicle.MinecartCommandBlock;
 import net.minecraft.world.level.portal.TeleportTransition;
 import no2.worldthreader.common.ServerWorldTicking;
@@ -81,10 +80,5 @@ public class DimensionChangeHelper {
         if (!entity.isRemoved()) { //Avoid adding entities that were removed for another reason, e.g. falling sand that landed or mobs that died
             ((ServerLevel) entity.level()).addWithUUID(entity);
         }
-    }
-
-    public static void requestEnderPearlTeleportFromDestinationWorld(ThrownEnderpearl thrownEnderpearl, Entity entityFromOtherWorld) {
-        //TODO implement check in a threadsafe way, e.g. delay it (entity.canUsePortal), treat this as a request to teleport
-        throw new UnsupportedOperationException("Cross Dimension Enderpearling not implemented yet!");
     }
 }

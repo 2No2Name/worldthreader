@@ -33,7 +33,6 @@
     "entity_id_wireless_redstone_fix.EntityMixin",
     "entity_id_wireless_redstone_fix.ServerWorldMixin",
     "exclusive_world_access.MinecraftServerMixin",
-    "thread_ownership.MainThreadExecutorMixin",
     "thread_ownership.ServerChunkManagerMixin",
     "thread_ownership.WorldMixin",
     "threading_compatibility.OptionalDispenseItemBehaviorMixin",
