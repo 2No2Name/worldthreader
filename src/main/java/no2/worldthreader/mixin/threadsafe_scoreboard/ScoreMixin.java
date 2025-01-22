@@ -55,8 +55,8 @@ public abstract class ScoreMixin implements AtomicArithmeticScore {
     }
 
     @Override
-    public int worldthreader$compareExchangeValue(int value, int expected) {
-        return this.atomicValue.compareAndExchange(value, expected);
+    public int worldthreader$compareExchangeValue(int expectedValue, int newValue) {
+        return this.atomicValue.compareAndExchange(expectedValue, newValue);
     }
 
     /**

@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class ScoreboardMixin {
 
     @Mutable
-    @Shadow @Final private Map<String, PlayerScores> playerScores; //TODO safety of player scores?
+    @Shadow @Final private Map<String, PlayerScores> playerScores;
 
     @Shadow @Final private Object2ObjectMap<String, Objective> objectivesByName;
 
@@ -30,10 +30,10 @@ public abstract class ScoreboardMixin {
     )
     private void createThreadsafeCollections(CallbackInfo ci) {
         if (this instanceof ThreadsafeScoreboard) {
+            // Using a ConcurrentHashMap assumes that two dimensions do not add or remove the score of one entity at the same time, otherwise this might yield wrong results, maybe even a crash.
             this.playerScores = new ConcurrentHashMap<>(this.playerScores);
         }
     }
-    //TODO "ScoreAccess"
 
     @Inject(
             method = "addObjective(Ljava/lang/String;Lnet/minecraft/world/scores/criteria/ObjectiveCriteria;Lnet/minecraft/network/chat/Component;Lnet/minecraft/world/scores/criteria/ObjectiveCriteria$RenderType;ZLnet/minecraft/network/chat/numbers/NumberFormat;)Lnet/minecraft/world/scores/Objective;",

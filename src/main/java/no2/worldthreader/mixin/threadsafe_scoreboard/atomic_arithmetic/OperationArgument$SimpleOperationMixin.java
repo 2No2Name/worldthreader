@@ -18,17 +18,17 @@ public interface OperationArgument$SimpleOperationMixin {
      */
     @Overwrite
     default void apply(ScoreAccess firstValue, ScoreAccess secondValue) throws CommandSyntaxException {
-        int previousFirstValue = firstValue.get();
+        int previousValue;
         if (firstValue instanceof AtomicArithmeticScore arithmeticScore) {
             int newValue;
-            int exchangeResult;
+            int witness = firstValue.get();
             do {
-                newValue = this.apply(previousFirstValue, secondValue.get());
-                exchangeResult = arithmeticScore.worldthreader$compareExchangeValue(newValue, previousFirstValue);
-                previousFirstValue = exchangeResult;
-            } while (exchangeResult != newValue);
+                previousValue = witness;
+                newValue = this.apply(previousValue, secondValue.get());
+                witness = arithmeticScore.worldthreader$compareExchangeValue(previousValue, newValue);
+            } while (witness != previousValue);
         } else {
-            int result = this.apply(previousFirstValue, secondValue.get());
+            int result = this.apply(firstValue.get(), secondValue.get());
             firstValue.set(result);
         }
     }
