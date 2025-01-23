@@ -48,8 +48,8 @@ interdimensional commands. The order of commands within one dimension stays the 
 
 ##### Can my dimensions get de-synchronized?
 
-Worldthreader will always synchronize the dimensions with each other, setting the overall MSPT to the slowest individual
-dimension.
+No. Worldthreader will always synchronize the dimensions with each other, setting the overall MSPT to the slowest
+individual dimension.
 
 ##### Are dimension counts above 3 supported?
 
@@ -61,9 +61,9 @@ Yes, but that may reduce the performance.
 
 ##### How is the compatibility with other mods?
 
-Compatibility issues with other mods will be very common. Often these issues cannot be fixed by this mod, but instead
-the other mods have to adjust. The author of Worldthreader is willing to cooperate and suggest changes to other mods for
-compatibility.
+Compatibility issues with other mods will be very common. Please report all issues you encounter to worldthreader
+directly to avoid giving other mod authors headaches. The author of Worldthreader is willing to cooperate and suggest
+changes to other mods for compatibility.
 
 ##### What about older versions of Minecraft?
 
