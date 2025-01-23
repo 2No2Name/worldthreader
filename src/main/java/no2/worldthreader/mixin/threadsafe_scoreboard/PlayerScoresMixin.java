@@ -64,9 +64,8 @@ public class PlayerScoresMixin {
     @ModifyArg(
             method = "listRawScores", at = @At(value = "INVOKE", target = "Ljava/util/Collections;unmodifiableMap(Ljava/util/Map;)Ljava/util/Map;")
     )
-    private <K,V> Map<? extends K, ? extends V> useThreadsafeMap(Map<? extends K, ? extends V> m){
-        //noinspection unchecked
-        return (Map<? extends K, ? extends V>) this.scoresThreadsafe;
+    private <K, V> Map<?, ?> useThreadsafeMap(Map<? extends K, ? extends V> m) {
+        return this.scoresThreadsafe;
     }
 
 }
