@@ -21,7 +21,7 @@ jobs:
         run: ./gradlew build
 
       - name: Upload build artifacts
-        if: ${{ github.event_name == 'push' &&matrix.java == '21' }} # Only upload artifacts built from latest java on push
+        if: ${{ github.event_name == 'push' }} # Only upload artifacts on push
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
