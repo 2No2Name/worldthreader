@@ -13,10 +13,7 @@
 
 - Does cross world player pet teleportation exist?
 - PrimaryLevelData changes
-- The server player list is used in many places. Most of it is threadsafe, as it is exclusively modified outside the
-  world tick. However, certain commands (e.g. adding a player to the whitelist) need exclusive world access.
-- Tick command needs exclusive access
-
+- Connections have a packet counter that is not threadsafe but it only used to display statistics
 ## Crashes
 
 - No known ones
