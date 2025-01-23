@@ -3,6 +3,7 @@
 - Make it possible for users to find out when and why threads have to wait for the other worlds, i.e. what is not implemented in the mod yet
 - Find a way to systematically determine whether there are thread-safety issues, including with other mods
 - Run some tests to see if there is a performance benefit to using the mod (or is there always a fallback to serial execution in every tick)
+- Avoid heavy usage of accesswidener
 
 ## Things to check
 - Serverlevel.emptyTime is reset by teleports, probably slightly different from vanilla (off by one tick? does it matter -> not really)

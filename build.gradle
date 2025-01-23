@@ -1,6 +1,9 @@
+import me.modmuss50.mpp.ReleaseType
+
 plugins {
     id 'fabric-loom' version '1.9-SNAPSHOT'
     id 'maven-publish'
+    id "me.modmuss50.mod-publish-plugin" version "0.8.3"
 }
 
 version = project.mod_version
@@ -156,5 +159,17 @@ def getReleaseType() {
                 throw new IllegalArgumentException("Release type must be alpha, beta or stable!")
             }
             return ReleaseType.STABLE
+    }
+}
+
+tasks.register("printMinecraftVersion") {
+    doLast {
+        println project.minecraft_version
+    }
+}
+
+tasks.register("printModVersion") {
+    doLast {
+        println project.mod_version
     }
 }
