@@ -79,3 +79,82 @@ publishing {
         // retrieving dependencies.
     }
 }
+
+publishMods {
+    changelog = rootProject.file("CHANGELOG.md").getText().trim()
+    type = getReleaseType()
+    file = remapJar.archiveFile
+
+    def mod_version = "mc${project.minecraft_version}-${project.mod_version}"
+    def fabric_mod_version = mod_version + "-fabric"
+    def fabric_suffix = "for Fabric"
+    def displayNamePrefix = project.property('mod_name').toString()
+    def cfDisplayNamePrefix = displayNamePrefix + " " + mod_version
+    def mrDisplayNamePrefix = displayNamePrefix + " " + project.property('mod_version').toString()
+
+    // CurseForge options used by both Fabric and Forge
+    def cfOptions = curseforgeOptions {
+        accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
+        projectId = "817126"
+
+        if (project.hasProperty('minecraft_version_range_start') && project.hasProperty('minecraft_version_range_end')) {
+            minecraftVersionRange {
+                start = project.property('minecraft_version_range_start').toString()
+                end = project.property('minecraft_version_range_end').toString()
+            }
+        } else {
+            minecraftVersions.add(project.property('minecraft_version').toString())
+        }
+    }
+
+    // Modrinth options used by both Fabric and Forge
+    def mrOptions = modrinthOptions {
+        accessToken = providers.environmentVariable("MODRINTH_API_KEY")
+        projectId = "LwH5rYyd"
+
+
+        if (project.hasProperty('minecraft_version_range_start') && project.hasProperty('minecraft_version_range_end')) {
+            minecraftVersionRange {
+                start = project.property('minecraft_version_range_start').toString()
+                end = project.property('minecraft_version_range_end').toString()
+            }
+        } else {
+            minecraftVersions.add(project.property('minecraft_version').toString())
+        }
+    }
+
+    // Fabric specific options for CurseForge
+    curseforge("curseforgeFabric") {
+        from cfOptions
+        modLoaders.add("fabric")
+        modLoaders.add("quilt")
+        version = fabric_mod_version
+        displayName = cfDisplayNamePrefix + " " + fabric_suffix
+    }
+
+    // Fabric specific options for Modrinth
+    modrinth("modrinthFabric") {
+        from mrOptions
+        modLoaders.add("fabric")
+        modLoaders.add("quilt")
+        version = fabric_mod_version
+        displayName = mrDisplayNamePrefix + " " + fabric_suffix
+    }
+}
+
+def getReleaseType() {
+    def releaseType = System.getenv("RELEASE_TYPE")
+    switch (releaseType) {
+        case "alpha":
+            return ReleaseType.ALPHA
+        case "beta":
+            return ReleaseType.BETA
+        case "stable":
+            return ReleaseType.STABLE
+        default:
+            if (releaseType != null) {
+                throw new IllegalArgumentException("Release type must be alpha, beta or stable!")
+            }
+            return ReleaseType.STABLE
+    }
+}
