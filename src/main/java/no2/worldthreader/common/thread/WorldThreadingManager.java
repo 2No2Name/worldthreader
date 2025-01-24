@@ -20,10 +20,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
+import static no2.worldthreader.init.ModGameRules.INITIAL_FALSE;
+
 public class WorldThreadingManager {
 
 	@SuppressWarnings("FieldMayBeFinal")
-	private static boolean DEBUG = false;
+	public static boolean DEBUG = INITIAL_FALSE;
 
 	private final MinecraftServer server;
 	private final Phaser tickBarrier;
@@ -181,11 +183,12 @@ public class WorldThreadingManager {
 		if (DEBUG) {
 			if (thread != currentThread) {
                 WorldThreaderMod.LOGGER.info("Thread {} is requesting exclusive world access", currentThread);
+				WorldThreaderMod.LOGGER.info("This slows down the game, but at least doesn't break it.");
 				WorldThreaderMod.LOGGER.info("Current thread with exclusive world access: {}", thread);
 			} else {
 				WorldThreaderMod.LOGGER.info("Thread {} is using the exclusive world access again", currentThread);
 			}
-			WorldThreaderMod.LOGGER.info("Thread {} stacktrace:", currentThread);
+			WorldThreaderMod.LOGGER.info("Thread {} stacktrace for information:", currentThread);
 			new Exception().printStackTrace();
 		}
 		if (thread == currentThread) {
