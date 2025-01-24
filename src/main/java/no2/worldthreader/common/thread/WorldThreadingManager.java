@@ -173,6 +173,11 @@ public class WorldThreadingManager {
 		Thread currentThread = Thread.currentThread();
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
 
+		if (!isWorldThread(currentThread)) {
+			WorldThreaderMod.LOGGER.error("Thread {} is requesting exclusive world access. However, only world threads may request exclusive access during the world ticking!", currentThread);
+			throw new IllegalStateException("Only world threads may request exclusive access during world ticking!");
+		}
+
 		if (DEBUG) {
 			if (thread != currentThread) {
                 WorldThreaderMod.LOGGER.info("Thread {} is requesting exclusive world access", currentThread);
