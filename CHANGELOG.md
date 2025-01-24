@@ -12,10 +12,11 @@ confirming the issue without worldthreader.
 
 ## Fixes:
 
-- Ticking time, weather and sleeping players order ensured by updating in overworld before updating in the other
-  dimension
-- Using the server console accessed the overworld
-- Non-world threads could incorrectly request exclusive world access during world tick
+- Fix ticking time, weather and sleeping players order by updating them in the overworld before updating them in the
+  other dimension
+- Fix non-world threads being able to request exclusive world access during world tick incorrectly
+- Fix F3 debug screen unsafely accessing the server world in singleplayer by not showing that information
+- Fix Server console unsafely accessing the overworld to get the spawn position by delaying the access
 
 ## Known issues:
 

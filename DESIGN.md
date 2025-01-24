@@ -53,3 +53,8 @@ needed.
   - Crafter block scaling or locking a map in the nether or end takes exclusive world access
 - Network connections have a non-threadsafe integer counter for tracking network statistics
   - Currently still non-threadsafe in worldthreader, leading to possibly wrong packet counts being displayed
+
+## Vanilla issues fixed
+
+- Fix F3 debug screen unsafely accessing the server world in singleplayer by not showing that information
+- Fix Server console unsafely accessing the overworld to get the spawn position by delaying the access

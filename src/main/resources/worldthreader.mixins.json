@@ -72,6 +72,7 @@
     "threadsafe_scoreboard.teams.ServerScoreboardMixin"
   ],
   "client": [
+    "threading_compatibility.DebugScreenOverlayMixin"
   ],
   "injectors": {
     "defaultRequire": 1
