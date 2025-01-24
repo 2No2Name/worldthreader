@@ -24,7 +24,7 @@ public abstract class ServerChunkCacheMixin implements ThreadOwnedObject {
     @Inject(
             method = {"getChunk", "getChunkFuture"}, at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;supplyAsync(Ljava/util/function/Supplier;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;")
     )
-    private void bruh(int i, int j, ChunkStatus chunkStatus, boolean bl, CallbackInfoReturnable<ChunkAccess> cir) {
+    private void debugOffthreadAccess(int i, int j, ChunkStatus chunkStatus, boolean bl, CallbackInfoReturnable<ChunkAccess> cir) {
         Thread currentThread = Thread.currentThread();
 
         if (WorldThreadingManager.DEBUG) {
