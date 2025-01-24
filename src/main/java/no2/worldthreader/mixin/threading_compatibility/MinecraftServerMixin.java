@@ -6,6 +6,7 @@ import net.minecraft.server.bossevents.CustomBossEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.util.profiling.ProfileResults;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import org.spongepowered.asm.mixin.Final;
@@ -62,6 +63,13 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
             method = "stopTimeProfiler", at = @At("HEAD")
     )
     private void ensureSafe2(CallbackInfoReturnable<ProfileResults> cir) {
+        this.getAllLevels();
+    }
+
+    @Inject(
+            method = "setDifficulty", at = @At("HEAD")
+    )
+    private void ensureSafe2(Difficulty difficulty, boolean bl, CallbackInfo ci) {
         this.getAllLevels();
     }
 }

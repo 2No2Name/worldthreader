@@ -15,10 +15,9 @@ import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
@@ -35,62 +34,49 @@ public abstract class ServerLevelMixin extends Level {
     @NotNull
     public abstract MinecraftServer getServer();
 
-    @Shadow protected abstract void advanceWeatherCycle();
 
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;advanceWeatherCycle()V"), method = "tick")
-    private void tickWeatherThreaded(ServerLevel instance) {
-        if (((MinecraftServerExtended) this.getServer()).worldthreader$isTickMultithreaded()) {
-            this.tickWeatherThreaded();
-        } else {
-            this.advanceWeatherCycle();
-        }
-    }
-
-    @Unique
-    private void tickWeatherThreaded() {
-        WorldThreadingManager worldThreadingManager = Objects.requireNonNull(((MinecraftServerExtended) ((ServerLevel) (Object) this).getServer()).worldthreader$getThreadingManager());
-        boolean isMainWorld = ServerWorldTicking.isMainWorld((ServerLevel) (Object) this);
-        if (!isMainWorld) {
-            //Dependent worlds need to wait for the main world to update the weather first, otherwise they might update their weather based on
-            //outdated values or values read with race conditions.
-            worldThreadingManager.withinTickBarrier();
-            this.advanceWeatherCycle();
-        } else {
-            //Update the weather from the main world immediately
-            this.advanceWeatherCycle();
-            //The main world does not need to wait for dependent worlds ticking their weather
-            worldThreadingManager.withinTickBarrier();
-        }
-    }
-
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;updateSkyBrightness()V"), method = "tick")
-    private void calcAmbientDarknessBeforeTickingTime(ServerLevel serverWorld) {
-        if (((MinecraftServerExtended) this.getServer()).worldthreader$isTickMultithreaded()) {
-            //Only calculate ambient darkness on the main world here, delay for other worlds.
-            // Time ticks in the overworld before other dimensions tick their sky brightness
-            boolean isMainWorld = ServerWorldTicking.isMainWorld((ServerLevel) (Object) this);
-            if (isMainWorld) {
-                //Update the weather from the main world immediately
-                serverWorld.updateSkyBrightness();
-            }
-        } else {
-            serverWorld.updateSkyBrightness();
-        }
-    }
-
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;tickTime()V", shift = At.Shift.AFTER), method = "tick")
-    private void calcAmbientDarknessAfterTickingTime(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
+    @Inject(
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/TickRateManager;runsNormally()Z"
+            ),
+            method = "tick(Ljava/util/function/BooleanSupplier;)V",
+            slice = @Slice(to = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/border/WorldBorder;tick()V"))
+    )
+    private void threadSafetyForPretickTimeWeatherAndSleeping(BooleanSupplier booleanSupplier, CallbackInfo ci) {
         MinecraftServerExtended server = (MinecraftServerExtended) this.getServer();
         if (server.worldthreader$isTickMultithreaded()) {
             WorldThreadingManager worldThreadingManager = Objects.requireNonNull(server.worldthreader$getThreadingManager());
             boolean isMainWorld = ServerWorldTicking.isMainWorld((ServerLevel) (Object) this);
 
-            //The main world does not need to wait for dependent worlds ticking their weather or ambient darkness
-            //Dependent worlds need to wait for the main world to update the time first, otherwise they might update their ambient darkness based on
-            //outdated values or values read with race conditions.
-            worldThreadingManager.withinTickBarrier();
+            //On vanilla, the main world (overworld) is updated first.
+            //Update on the main world first (writes to shared data), followed by the other worlds
             if (!isMainWorld) {
-                this.updateSkyBrightness();
+                worldThreadingManager.withinTickBarrier();
+            }
+        }
+    }
+
+    @Inject(
+            method = "tick(Ljava/util/function/BooleanSupplier;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/util/profiling/ProfilerFiller;push(Ljava/lang/String;)V"
+            ),
+            slice = @Slice(
+                    from = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;tickTime()V"),
+                    to = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;isDebug()Z")
+            )
+    )
+    private void threadSafety2ForPretickTimeWeatherAndSleeping(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
+        MinecraftServerExtended server = (MinecraftServerExtended) this.getServer();
+        if (server.worldthreader$isTickMultithreaded()) {
+            WorldThreadingManager worldThreadingManager = Objects.requireNonNull(server.worldthreader$getThreadingManager());
+            boolean isMainWorld = ServerWorldTicking.isMainWorld((ServerLevel) (Object) this);
+
+            //Update on the main world first (writes to shared data), followed by the other worlds
+            if (isMainWorld) {
+                worldThreadingManager.withinTickBarrier();
             }
         }
     }

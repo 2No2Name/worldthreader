@@ -11,9 +11,8 @@
 
 ## Thread-safety
 
-- Does cross world player pet teleportation exist?
-- PrimaryLevelData changes
 - Connections have a packet counter that is not threadsafe but it only used to display statistics
+
 ## Crashes
 
 - No known ones

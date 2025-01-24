@@ -8,6 +8,7 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.storage.DerivedLevelData;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
 import no2.worldthreader.common.thread.ThreadHelper;
+import no2.worldthreader.common.thread.ThreadLocals;
 import no2.worldthreader.common.thread.ThreadOwnedObject;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 
@@ -22,6 +23,7 @@ public class ServerWorldTicking {
 
     public static void runWorldThread(MinecraftServer server, WorldThreadingManager worldThreadingManager, ServerLevel serverWorld, ThreadOwnedObject[] threadOwnedObjects) {
         Thread currentThread = Thread.currentThread();
+        ThreadLocals.WORLD_THREAD_MINECRAFT_SERVER_ACCESS.set(server);
         boolean continueMultithreading = true;
         while (continueMultithreading) {
             //Start of tick barrier
@@ -38,6 +40,7 @@ public class ServerWorldTicking {
                 }
             }
         }
+        ThreadLocals.WORLD_THREAD_MINECRAFT_SERVER_ACCESS.remove();
     }
 
     public static void tickThreaded(MinecraftServer server, WorldThreadingManager worldThreadingManager, ServerLevel serverLevel) {
@@ -58,6 +61,7 @@ public class ServerWorldTicking {
             profilerFiller.push("tick");
 
             crashReason = "Exception ticking world";
+            worldThreadingManager.withinTickBarrier();
             ((ServerWorldExtended) serverLevel).worldthreader$setTickPhase(WorldThreaderTickPhase.WORLD_TICK);
             serverLevel.tick(shouldKeepTicking);
 
