@@ -49,6 +49,8 @@
     "threading_compatibility.WeatherCommandMixin",
     "threading_compatibility.WhitelistCommandMixin",
     "threading_compatibility.WorldBorderCommandMixin",
+    "threading_compatibility.dedicated_server_console.DedicatedServer$ConsoleHandlerThreadMixin",
+    "threading_compatibility.dedicated_server_console.DedicatedServerMixin",
     "threading_compatibility.entity_owners.ItemEntityMixin",
     "threading_compatibility.entity_owners.PrimedTntMixin",
     "threading_compatibility.entity_owners.ProjectileMixin",
