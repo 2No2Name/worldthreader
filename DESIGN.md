@@ -44,11 +44,12 @@ needed.
 - Setting gamerules requires exclusive world access
 - Setting world border requires exclusive world access
 - Setting weather requires exclusive world access
-
-The server player list is used in many places. Most of it is threadsafe, as it is exclusively modified outside the
-world tick. However, certain commands (e.g. adding a player to the whitelist) need exclusive world access.
+- Using the schedule command requires exclusive world access
+- Changing the whitelist, banlist, oplist requires exclusive world access
 
 ## Observations
 
 - DimensionDataStorage is per-dimension in vanilla, but maps and some others are tied to overworld
   - Crafter block scaling or locking a map in the nether or end takes exclusive world access
+- Network connections have a non-threadsafe integer counter for tracking network statistics
+  - Currently still non-threadsafe in worldthreader, leading to possibly wrong packet counts being displayed

@@ -19,8 +19,12 @@
 
 ## Bugs
 
-- Leashed entities - player portal interaction is slightly different from vanilla. When the player goes through the
+- Leashed entities going through a portal with the player behaves different from vanilla. When the player goes through
+  the
   portal first, it fails to leash the mobs following the player.
+- Ender pearls in dimensions different from the player slow down the game by waiting for exclusive world access to check
+  if they should despawn
+  - Workaround: `/gamerule enderPearlsVanishOnDeath false`
 
 ## Check consequences of fixes
 - ServerPlayer is not newly created unless first time leaving the end
