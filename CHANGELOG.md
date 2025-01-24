@@ -12,6 +12,8 @@ confirming the issue without worldthreader.
 
 - Ticking time, weather and sleeping players order ensured by updating in overworld before updating in the other
   dimension
+- Using the server console accessed the overworld
+- Non-world threads could incorrectly request exclusive world access during world tick
 
 ## Known issues:
 
