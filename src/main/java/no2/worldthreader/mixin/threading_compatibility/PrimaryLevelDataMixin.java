@@ -5,14 +5,21 @@ import net.minecraft.world.level.storage.PrimaryLevelData;
 import net.minecraft.world.level.storage.ServerLevelData;
 import net.minecraft.world.level.storage.WorldData;
 import net.minecraft.world.level.timers.TimerQueue;
+import no2.worldthreader.common.mixin_support.interfaces.PrimaryLevelDataExtended;
 import no2.worldthreader.common.thread.ThreadLocals;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PrimaryLevelData.class)
-public abstract class PrimaryLevelDataMixin implements ServerLevelData, WorldData {
+public abstract class PrimaryLevelDataMixin implements ServerLevelData, WorldData, PrimaryLevelDataExtended {
+
+    @Shadow
+    @Final
+    private TimerQueue<MinecraftServer> scheduledEvents;
 
     //For all other fields there was a different solution. The thread local minecraft server access for
     // world threads was added last, but it might actually be the better way to ensure mod compatibility
@@ -26,5 +33,10 @@ public abstract class PrimaryLevelDataMixin implements ServerLevelData, WorldDat
         if (minecraftServer != null) {
             minecraftServer.getAllLevels();
         }
+    }
+
+    @Override
+    public TimerQueue<MinecraftServer> worldthreader$getScheduledEventsUnsafe() {
+        return this.scheduledEvents;
     }
 }
