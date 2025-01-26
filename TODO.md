@@ -8,6 +8,10 @@
 ## Things to check
 - Serverlevel.emptyTime is reset by teleports, probably slightly different from vanilla (off by one tick? does it matter -> not really)
 - Check the list of all commands for possible cross-world access or writes to shared data
+- Passenger / Non passenger /player / player passenger / non player / non player passenger:
+  - ender pearls and command blocks requesting entities to teleport over from other dimensions
+  - command blocks teleporting entities within other dimensions
+  - command blocks teleporting entities within two other dimensions (all 3 worlds involved)
 
 ## Thread-safety
 
@@ -19,9 +23,7 @@
 
 ## Bugs
 
-- Leashed entities going through a portal with the player behaves different from vanilla. When the player goes through
-  the
-  portal first, it fails to leash the mobs following the player.
+- Leashed entities going through a portal with the player behaves different from vanilla. When the player goes through the portal first, it fails to leash the mobs following the player.
 - Ender pearls in dimensions different from the player slow down the game by waiting for exclusive world access to check
   if they should despawn
   - Workaround: `/gamerule enderPearlsVanishOnDeath false`

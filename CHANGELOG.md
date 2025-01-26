@@ -1,22 +1,16 @@
-Worldthreader 2.0.1 for Minecraft 1.21.4 fixes a few thread-safety issues and adds a new Debug gamerule.
-Please report any issues you encounter to
-the [issue tracker of worldthreader](https://github.com/2No2Name/worldthreader/issues). As worldthreader likely comes
-with massive mod compatibility issues, please do not report crashes and issues to other mods' issue trackers before
-confirming the issue without worldthreader.
+Worldthreader 2.0.2 for Minecraft 1.21.4 fixes a few teleportation issues.
+Please report any issues you encounter to the [issue tracker of worldthreader](https://github.com/2No2Name/worldthreader/issues). As worldthreader likely comes with massive mod compatibility issues, please do not report crashes and issues to other mods' issue trackers before confirming the issue without worldthreader.
 
 ## Additions:
 
-- Thread safety for commands related to scheduled events, whitelist, bans etc.
-- Debug gamerule to detect both performance and correctness issues. However, there is no guarantee that all issues are
-  found.
 
 ## Fixes:
 
-- Fix ticking time, weather and sleeping players order by updating them in the overworld before updating them in the
-  other dimension
-- Fix non-world threads being able to request exclusive world access during world tick incorrectly
-- Fix F3 debug screen unsafely accessing the server world in singleplayer by not showing that information
-- Fix Server console unsafely accessing the overworld to get the spawn position by delaying the access
+- Fix debug gamerule incorrectly warning about world generation worker threads
+- Fix using ender pearls causing crashes
+- Fix teleporting a boat with a player passenger across dimensions with a command block causing crashes
+- Fix more teleportation bugs
+
 
 ## Known issues:
 

@@ -35,23 +35,39 @@ public abstract class ServerPlayerMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;isRemoved()Z")
     )
     private boolean isRemovedAndNotArrivalPhase(boolean original, @Local(argsOnly = true) TeleportTransition teleportTransition, @Share("isArrival") LocalBooleanRef isMultithreadedPassengerArrival, @Share("isRecovery") LocalBooleanRef isRecovery) {
-        if (!DimensionChangeHelper.isDummy(teleportTransition) && WorldThreadingManager.isMultithreadingAndCorrectThreadForWorld(teleportTransition.newLevel())) {
-            if (!teleportTransition.asPassenger()) {
-                throw new IllegalStateException("Worldthreader: On destination world teleport call only expected for cross-world passenger player teleports!");
-            } else if (this.serverLevel() == teleportTransition.newLevel()) {
-                if (WorldThreadingManager.isRecoveringTeleports(teleportTransition.newLevel())) {
-                    isRecovery.set(true);
-                    isMultithreadedPassengerArrival.set(false);
-                    return false;
-                }
-                throw new IllegalStateException("Worldthreader: On destination world teleport call only expected for cross-world passenger player teleports!");
+        if (DimensionChangeHelper.isDummy(teleportTransition)) {
+            //Dummy transition only exists during departure (e.g. when using portals)
+            return original;
+        }
+
+        if (!WorldThreadingManager.isMultithreadingAndCorrectThreadForWorld(teleportTransition.newLevel())) {
+            //Not on destination world thread -> This is a departure, but target transition already known (e.g. pearl or command block triggered)
+            // Note: This could also be an arrival at the same time, if a teleport within the same dimension is triggered from another dimension using a command block
+            //Also code path for worldthreader disabled
+            return original;
+        }
+        //This is on the destination world thread. Often that means the arrival is happening now. But sometimes it means
+        // a command block or ender pearls is grabbing an entity from another dimension.
+
+        if (WorldThreadingManager.isRecoveringTeleports(teleportTransition.newLevel())) {
+            if (this.serverLevel() != teleportTransition.newLevel()) {
+                throw new IllegalStateException("Worldthreader: Failed teleport recovery in wrong dimension!");
             }
-            isRecovery.set(false);
+            isRecovery.set(true);
+            return false;
+        }
+
+        if (WorldThreadingManager.isPlacingReceivedTeleports(teleportTransition.newLevel())) {
+            if (this.serverLevel() == teleportTransition.newLevel()) {
+                throw new IllegalStateException("Worldthreader: Cross dimensional arrival split must be cross-dimensional!");
+            }
             isMultithreadedPassengerArrival.set(true);
             return false;
         }
-        isRecovery.set(false);
-        isMultithreadedPassengerArrival.set(false);
+
+        //Same dimension teleportation as passenger, e.g. when a boat is teleported by a command block and the player is riding it
+        //Same dimension enderpearl teleportation, command block teleportation
+        //Another dimension could also be grabbing an entity from this dimension using exclusive world access
         return original;
     }
 

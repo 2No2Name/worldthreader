@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
+import java.util.Objects;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin implements EntityExtended {
@@ -91,7 +92,12 @@ public abstract class EntityMixin implements EntityExtended {
 
             List<TeleportedEntityInfo> passengers = currentlyArrivingEntity.passengers();
             for (TeleportedEntityInfo passengerEntityInfo : passengers) {
-                TeleportTransition passengerTeleportTransition = this.calculatePassengerTransition(teleportTransition, passengerEntityInfo.oldEntityObject());
+                TeleportTransition passengerTeleportTransition;
+                if (passengerEntityInfo.entityTransition() != null) {
+                    passengerTeleportTransition = passengerEntityInfo.entityTransition();
+                } else {
+                    passengerTeleportTransition = this.calculatePassengerTransition(teleportTransition, passengerEntityInfo.oldEntityObject());
+                }
 
                 Entity newEntity = DimensionChangeHelper.arriveIntoWorld(passengerEntityInfo, passengerEntityInfo.oldEntityObject(), destination, (ServerLevel) this.level(), passengerTeleportTransition);
                 passengersAdded.add(newEntity);
@@ -110,7 +116,7 @@ public abstract class EntityMixin implements EntityExtended {
         if (this.level() instanceof ServerLevel destination) {
             TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
             if (currentlyArrivingEntity != null) {
-                return currentlyArrivingEntity.nbtCompound().merge(compoundTag);
+                return Objects.requireNonNull(currentlyArrivingEntity.nbtCompound()).merge(compoundTag);
             }
         }
         return original.call(oldEntity, compoundTag);

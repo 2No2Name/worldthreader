@@ -5,7 +5,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.common.mixin_support.interfaces.UnsafeOwnerAccess;
 import no2.worldthreader.common.thread.WorldThreadingManager;
@@ -35,7 +34,7 @@ public abstract class ItemEntityMixin extends Entity implements TraceableEntity,
     )
     public void getOwner(CallbackInfoReturnable<Entity> cir) {
         Entity owner = this.cachedThrower;
-        if (owner != null && owner.level() instanceof ServerLevel otherLevel && otherLevel != this.level() && WorldThreadingManager.isWorldAccessDenied(otherLevel)) {
+        if (owner != null && owner.level() instanceof ServerLevel otherLevel && otherLevel != this.level() && WorldThreadingManager.hasToAcquireExclusiveAccessBeforeAccessing(otherLevel)) {
             //Directly accessing the other level on the MinecraftServer will trigger worldthreader's serial fallback
             Objects.requireNonNull(this.level().getServer()).getAllLevels();
         }

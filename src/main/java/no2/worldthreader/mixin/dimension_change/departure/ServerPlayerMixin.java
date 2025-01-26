@@ -8,12 +8,13 @@ import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
-import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.List;
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin implements EntityExtended {
@@ -38,13 +39,9 @@ public abstract class ServerPlayerMixin implements EntityExtended {
 
     )
     private void convertSelfToTeleportedEntityInfo(TeleportTransition teleportTransition, CallbackInfoReturnable<ServerPlayer> cir) {
-        if (DimensionChangeHelper.isDummy(teleportTransition)) {
-
-            if (!WorldThreadingManager.isWrongThreadForWorld(teleportTransition.newLevel()) || !teleportTransition.asPassenger()) {
-                throw new IllegalStateException("Worldthreader: Dummy transition only expected for passenger player teleports on departure level thread!");
-            }
-
-            TeleportedEntityInfo entityInfo = new TeleportedEntityInfo((Entity) (Object) this, null, null, null, null);
+        if (DimensionChangeHelper.shouldConvertSelfToTeleportedEntityInfo(teleportTransition.newLevel())) {
+            TeleportTransition nonDummyTransition = DimensionChangeHelper.isDummy(teleportTransition) ? null : teleportTransition;
+            TeleportedEntityInfo entityInfo = new TeleportedEntityInfo((Entity) (Object) this, null, nonDummyTransition, null, null, List.of());
 
             //This doesn't do anything for players for now, but for called consistency with Entity teleportation code
             this.worldthreader$onEntityDepartsFromServerWorld(teleportTransition.newLevel().dimension(), this.serverLevel().dimension());

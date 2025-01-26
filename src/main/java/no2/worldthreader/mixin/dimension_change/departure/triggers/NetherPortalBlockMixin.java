@@ -42,7 +42,7 @@ public abstract class NetherPortalBlockMixin implements Portal {
             ), cancellable = true
     )
     private void handleOffthreadTeleport(ServerLevel originWorld, Entity entity, BlockPos pos, CallbackInfoReturnable<TeleportTransition> cir, @Local(ordinal = 1) ServerLevel targetWorld) {
-        if (WorldThreadingManager.isWrongThreadForWorld(targetWorld)) {
+        if (targetWorld != null && WorldThreadingManager.isWrongThreadForWorld(targetWorld)) {
             cir.setReturnValue(DimensionChangeHelper.getNonPassengerDummyTeleportTarget(targetWorld));
         }
     }

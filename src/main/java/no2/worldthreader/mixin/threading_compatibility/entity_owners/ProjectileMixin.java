@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -39,7 +38,7 @@ public abstract class ProjectileMixin extends Entity implements TraceableEntity,
     )
     public void getOwner(CallbackInfoReturnable<Entity> cir) {
         Entity owner = this.cachedOwner;
-        if (owner != null && owner.level() instanceof ServerLevel otherLevel && otherLevel != this.level() && WorldThreadingManager.isWorldAccessDenied(otherLevel)) {
+        if (owner != null && owner.level() instanceof ServerLevel otherLevel && otherLevel != this.level() && WorldThreadingManager.hasToAcquireExclusiveAccessBeforeAccessing(otherLevel)) {
             //Directly accessing the other level on the MinecraftServer will trigger worldthreader's serial fallback
             Objects.requireNonNull(this.level().getServer()).getAllLevels();
         }

@@ -90,6 +90,9 @@ public class WorldThreadingManager {
 		return true;
 	}
 
+	public static boolean isPlacingReceivedTeleports(ServerLevel newLevel) {
+		return isMultithreadingAndCorrectThreadForWorld(newLevel) && ((ServerWorldExtended) newLevel).worldthreader$getTickPhase() == WorldThreaderTickPhase.RECEIVE_TELEPORTS;
+	}
 	public static boolean isRecoveringTeleports(ServerLevel newLevel) {
 		return isMultithreadingAndCorrectThreadForWorld(newLevel) && ((ServerWorldExtended) newLevel).worldthreader$getTickPhase() == WorldThreaderTickPhase.RECOVER_FAILED_TELEPORTS;
 	}
@@ -118,7 +121,7 @@ public class WorldThreadingManager {
 		return Thread.currentThread() != ((ThreadOwnedObject) world).worldthreader$getOwningThread();
 	}
 
-	public static boolean isWorldAccessDenied(ServerLevel world) {
+	public static boolean hasToAcquireExclusiveAccessBeforeAccessing(ServerLevel world) {
 		return ((MinecraftServerExtended) world.getServer()).worldthreader$isTickMultithreaded() && WorldThreadingManager.isAccessibleForOtherThread(world);
 	}
 

@@ -13,6 +13,8 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
+import java.util.Objects;
+
 @Mixin(Entity.class)
 public abstract class EntityMixin implements EntityExtended {
     @Shadow public abstract @Nullable Entity.RemovalReason getRemovalReason();
@@ -27,7 +29,7 @@ public abstract class EntityMixin implements EntityExtended {
 		if (this.getRemovalReason() == Entity.RemovalReason.CHANGED_DIMENSION) {
 			this.unsetRemoved();
 
-			CompoundTag nbt = teleportedEntity.nbtCompound();
+			CompoundTag nbt = Objects.requireNonNull(teleportedEntity.nbtCompound());
 			if (nbt.contains(Mob.LEASH_TAG, Tag.TAG_COMPOUND) && this instanceof Leashable leashable) {
 				leashable.readLeashData(nbt);
 			}

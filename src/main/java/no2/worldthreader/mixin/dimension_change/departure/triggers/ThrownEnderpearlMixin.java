@@ -54,7 +54,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements U
 
     @Unique
     private void ensureThreadsafeAccess(Entity cachedOwner) {
-        if (WorldThreadingManager.isWorldAccessDenied((ServerLevel) cachedOwner.level())) {
+        if (WorldThreadingManager.hasToAcquireExclusiveAccessBeforeAccessing((ServerLevel) cachedOwner.level())) {
             Objects.requireNonNull(this.getServer()).getAllLevels();
         }
     }

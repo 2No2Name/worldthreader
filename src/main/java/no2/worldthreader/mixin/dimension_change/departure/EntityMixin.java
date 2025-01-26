@@ -1,6 +1,5 @@
 package no2.worldthreader.mixin.dimension_change.departure;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -22,7 +21,6 @@ import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
 import no2.worldthreader.common.thread.ThreadLocals;
-import no2.worldthreader.common.thread.WorldThreadingManager;
 import no2.worldthreader.common.tuples.Pair;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -47,17 +45,6 @@ public abstract class EntityMixin implements EntityExtended {
 
 	@Shadow protected abstract TeleportTransition calculatePassengerTransition(TeleportTransition teleportTransition, Entity entity);
 
-	@ModifyExpressionValue(
-			method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/portal/TeleportTransition;asPassenger()Z")
-	)
-	private boolean disallowCrossDimensionalPassengerTeleport(boolean isPassenger, @Local(argsOnly = true) TeleportTransition teleportTransition, @Local(ordinal = 0) boolean crossDimensional, @Local(ordinal = 1) ServerLevel destination) {
-		if (crossDimensional && isPassenger && WorldThreadingManager.isWrongThreadForWorld(destination)) {
-			DimensionChangeHelper.expectDummy(teleportTransition);
-		}
-        return isPassenger;
-    }
-
 	@Redirect(
 			method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;calculatePassengerTransition(Lnet/minecraft/world/level/portal/TeleportTransition;Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/world/level/portal/TeleportTransition;")
@@ -74,14 +61,13 @@ public abstract class EntityMixin implements EntityExtended {
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;")
 	)
 	public Entity convertPassengersToTeleportedEntityInfos(Entity passenger, TeleportTransition teleportTransition, Operation<Entity> original, @Local(argsOnly = true) ServerLevel destination, @Share("PassengerInfos") LocalRef<List<TeleportedEntityInfo>> passengerInfos) {
-		if (WorldThreadingManager.isWrongThreadForWorld(destination)) {
-			DimensionChangeHelper.expectDummy(teleportTransition);
+		if (DimensionChangeHelper.shouldConvertSelfToTeleportedEntityInfo(destination)) {
 
 			if (passengerInfos.get() == null) {
                 passengerInfos.set(new ArrayList<>());
             }
 
-			//This call should call worldthreader$setCurrentlyDepartingEntityInfo and return null, unlike vanilla, which returns the new entity for the destination level
+			//This call should call worldthreader$putDepartingPassengerEntityInfo and return null, unlike vanilla, which returns the new entity for the destination level
 			var ret = original.call(passenger, teleportTransition);
 			if (ret != null) {
                 throw new IllegalStateException("Worldthreader: Teleportation was finished unexpectedly!");
@@ -107,10 +93,10 @@ public abstract class EntityMixin implements EntityExtended {
 
 	)
 	private void convertSelfToTeleportedEntityInfo(ServerLevel destination, TeleportTransition teleportTransition, CallbackInfoReturnable<Entity> cir, @Share("PassengerInfos") LocalRef<List<TeleportedEntityInfo>> passengerInfos) {
-		if (WorldThreadingManager.isWrongThreadForWorld(destination)) {
+		if (DimensionChangeHelper.shouldConvertSelfToTeleportedEntityInfo(destination)) {
 
 			cir.setReturnValue(null);
-			DimensionChangeHelper.expectDummy(teleportTransition);
+			boolean isDestinationUnknown = DimensionChangeHelper.isDummy(teleportTransition);
 
 			boolean isPassenger = teleportTransition.asPassenger();
 
@@ -118,7 +104,7 @@ public abstract class EntityMixin implements EntityExtended {
 			Direction.Axis portalAxis = null;
 			Vec3 inPortalPos = null;
 
-            if (!isPassenger && this.portalProcess != null && this.portalProcess.isSamePortal((Portal) Blocks.NETHER_PORTAL)) {
+			if (isDestinationUnknown && !isPassenger && this.portalProcess != null && this.portalProcess.isSamePortal((Portal) Blocks.NETHER_PORTAL)) {
 				//See NetherPortalBlockMixin: This call populates ThreadLocals.NETHER_PORTAL_POSITION_INFO if the last 3 parameters are null.
 				//noinspection DataFlowIssue
                 NetherPortalBlock.getDimensionTransitionFromExit((Entity) (Object) this, this.portalProcess.getEntryPosition(), null, null, null);
@@ -134,7 +120,7 @@ public abstract class EntityMixin implements EntityExtended {
                 teleportedEntityInfos = List.of();
             }
 			//noinspection DataFlowIssue
-            TeleportedEntityInfo entityInfo = new TeleportedEntityInfo((Entity) (Object) this, entityNBT, portalAxis, inPortalPos, teleportedEntityInfos);
+			TeleportedEntityInfo entityInfo = new TeleportedEntityInfo((Entity) (Object) this, entityNBT, isDestinationUnknown ? null : teleportTransition, portalAxis, inPortalPos, teleportedEntityInfos);
 
 			// [VanillaCopy] teleportCrossDimensions
 			this.removeAfterChangingDimensions();

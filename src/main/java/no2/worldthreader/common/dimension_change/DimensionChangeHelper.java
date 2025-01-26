@@ -7,6 +7,7 @@ import net.minecraft.world.level.portal.TeleportTransition;
 import no2.worldthreader.common.ServerWorldTicking;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
+import no2.worldthreader.common.thread.WorldThreadingManager;
 import no2.worldthreader.init.ModGameRules;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,10 +22,14 @@ public class DimensionChangeHelper {
         return teleportTransition.postTeleportTransition() == null;
     }
 
-    public static void expectDummy(TeleportTransition teleportTransition) {
+    public static void expectDummy(TeleportTransition teleportTransition, String message) {
         if (!DimensionChangeHelper.isDummy(teleportTransition)) {
-            throw new IllegalStateException("Worldthreader: Invalid caller for cross dimensional passenger teleport!");
+            throw new IllegalStateException("Worldthreader: " + message);
         }
+    }
+
+    public static boolean shouldConvertSelfToTeleportedEntityInfo(ServerLevel destination) {
+        return WorldThreadingManager.isWrongThreadForWorld(destination);
     }
 
     public static TeleportTransition getNonPassengerDummyTeleportTarget(ServerLevel destination) {
@@ -34,9 +39,14 @@ public class DimensionChangeHelper {
     public static void nonPassengerArriveInWorld(TeleportedEntityInfo teleportedEntityInfo, Entity oldEntityObject, ServerLevel destination, ServerLevel source) {
 
         TeleportedEntityInfo previous = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
-        ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(teleportedEntityInfo);
-        TeleportTransition teleportTransition = Objects.requireNonNull(oldEntityObject.portalProcess).getPortalDestination(source, oldEntityObject);
-        ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(previous);
+        TeleportTransition teleportTransition;
+        if (teleportedEntityInfo.entityTransition() != null) {
+            teleportTransition = teleportedEntityInfo.entityTransition();
+        } else {
+            ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(teleportedEntityInfo);
+            teleportTransition = Objects.requireNonNull(oldEntityObject.portalProcess).getPortalDestination(source, oldEntityObject);
+            ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(previous);
+        }
 
         if (teleportTransition == null) {
             ((ServerWorldExtended) source).worldthreader$receiveFailedTeleport(teleportedEntityInfo);
@@ -87,7 +97,7 @@ public class DimensionChangeHelper {
         ((EntityExtended) entity).worldthreader$restoreEntity(entityInfo);
 
         for (Entity passenger : passengers) {
-            passenger.startRiding(entity);
+            passenger.startRiding(entity, true);
         }
         return entity;
     }
