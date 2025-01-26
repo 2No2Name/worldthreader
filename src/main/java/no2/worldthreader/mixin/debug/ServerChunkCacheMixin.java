@@ -25,11 +25,14 @@ public abstract class ServerChunkCacheMixin implements ThreadOwnedObject {
             method = {"getChunk", "getChunkFuture"}, at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;supplyAsync(Ljava/util/function/Supplier;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;")
     )
     private void debugOffthreadAccess(int i, int j, ChunkStatus chunkStatus, boolean bl, CallbackInfoReturnable<ChunkAccess> cir) {
+        if (chunkStatus != ChunkStatus.FULL) {
+            return; //For some reason some chunk generation stuff calls the ServerChunkCache (e.g. placing a generated cat in a village)
+        }
         Thread currentThread = Thread.currentThread();
 
         if (WorldThreadingManager.DEBUG) {
             if (this.mainThread != currentThread) {
-                WorldThreaderMod.LOGGER.error("Thread {} is illegally accessing a chunk from ServerChunkCache owned by thread {}!", currentThread, this.worldthreader$getOwningThread());
+                WorldThreaderMod.LOGGER.error("Thread {} is illegally accessing a chunk ({},{}) from ServerChunkCache owned by thread {}!", currentThread, i, j, this.worldthreader$getOwningThread());
                 WorldThreaderMod.LOGGER.error("This breaks the game.");
                 WorldThreaderMod.LOGGER.error("Thread {} stacktrace:", currentThread);
                 new Exception().printStackTrace();
