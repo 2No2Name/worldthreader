@@ -19,12 +19,15 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Mixin(Projectile.class)
 public abstract class ProjectileMixin extends Entity implements TraceableEntity, UnsafeOwnerAccess {
     @Shadow private @Nullable Entity cachedOwner;
 
-    @Shadow public abstract void setOwner(@Nullable Entity entity);
+    @Shadow
+    @Nullable
+    public UUID ownerUUID;
 
     public ProjectileMixin(EntityType<? extends ThrowableItemProjectile> entityType, Level level) {
         super(entityType, level);

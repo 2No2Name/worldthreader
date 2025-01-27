@@ -23,8 +23,7 @@ All of these are very niche and are unlikely to affect players and most technica
     - Dogs (and possibly other pets like cats and parrots) can follow the coordinates of the player that switched dimensions (https://www.youtube.com/watch?v=cWOVszGRc9E)
     - Tridents with loyalty follow the player's coordinates after switching dimensions (not tested)
     - Mob AI that targets a player that switched dimensions can still target the player after switching dimensions (https://youtu.be/v7bn6lvCDX8?t=205)
-
-In the following, entities means non-player entities. In vanilla, players teleport outside the world tick, avoiding potential thread safety issues already.
+- Interdimensional ender pearls and leads may react the death of the player one tick later than in vanilla
 
 - Entities that switch dimension via portal arrive at the end of the tick for thread safety reasons. This might affect contraptions that depend on precise timings of switching dimensions.
 - Entities that are teleported to another dimension via command blocks or command block minecarts similarly arrive at the end of the tick. This of course also affects other commands which might try to access the entity immediately after the teleport command is executed.

@@ -1,5 +1,6 @@
 package no2.worldthreader.common.thread;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import net.minecraft.CrashReport;
@@ -7,6 +8,7 @@ import net.minecraft.ReportedException;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.WorldThreaderMod;
 import no2.worldthreader.common.ServerWorldTicking;
@@ -14,6 +16,8 @@ import no2.worldthreader.common.WorldThreaderTickPhase;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
 
+import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,6 +45,9 @@ public class WorldThreadingManager {
 
 	private boolean isMultiThreadedPhase = false;
 	private CrashReport crashReport;
+
+
+	public final ObjectOpenHashSet<UUID> deadPlayers = new ObjectOpenHashSet<>();
 
 
 	public WorldThreadingManager(MinecraftServer server) {
@@ -95,6 +102,10 @@ public class WorldThreadingManager {
 	}
 	public static boolean isRecoveringTeleports(ServerLevel newLevel) {
 		return isMultithreadingAndCorrectThreadForWorld(newLevel) && ((ServerWorldExtended) newLevel).worldthreader$getTickPhase() == WorldThreaderTickPhase.RECOVER_FAILED_TELEPORTS;
+	}
+
+	public static WorldThreadingManager get(ServerLevel serverLevel) {
+		return ((MinecraftServerExtended) serverLevel.getServer()).worldthreader$getThreadingManager();
 	}
 
 	public boolean isMultiThreadedPhase() {
@@ -304,6 +315,15 @@ public class WorldThreadingManager {
 				this.withinTickBarrier.forceTermination();
 			}
 			throw new ReportedException(this.crashReport);
+		}
+	}
+
+	public void updateDeadPlayerSet(Collection<ServerPlayer> players) {
+		this.deadPlayers.clear();
+		for (ServerPlayer player : players) {
+			if (player.isDeadOrDying()) {
+				this.deadPlayers.add(player.getUUID());
+			}
 		}
 	}
 }

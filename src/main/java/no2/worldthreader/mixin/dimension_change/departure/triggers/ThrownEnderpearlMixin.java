@@ -44,7 +44,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements U
             return;
         }
         boolean isPlayer = cachedOwner instanceof ServerPlayer;
-        this.hasServerPlayerAsOwner = isPlayer; //TODO removal of the server player is not noticed until getOwner is called
+        this.hasServerPlayerAsOwner = isPlayer;
         if (isPlayer) {
             this.ensureThreadsafeAccess(cachedOwner);
             //Register the enderpearl more reliably than vanilla. Then omit redundant registering during the enderpearl tick which would require exclusive world access
@@ -114,6 +114,10 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements U
     private boolean isOwnerDeadPlayer() {
         if (!this.isOwnerServerPlayer()) {
             return false;
+        }
+        WorldThreadingManager worldThreadingManager = WorldThreadingManager.get((ServerLevel) this.level());
+        if (worldThreadingManager.isMultiThreadedPhase()) {
+            return worldThreadingManager.deadPlayers.contains(this.ownerUUID);
         }
         Entity entity = this.getOwner();
         return entity instanceof ServerPlayer && !entity.isAlive();

@@ -10,13 +10,5 @@ Please report any issues you encounter to the [issue tracker of worldthreader](h
 - Fix using ender pearls causing crashes
 - Fix teleporting a boat with a player passenger across dimensions with a command block causing crashes
 - Fix more teleportation bugs
-
-
-## Known issues:
-
-- Leashed entities going through a portal with the player behaves different from vanilla. When the player goes through
-  the portal first, it fails to leash the mobs following the player.
-  - Workaround: Let the leashed entities go through the portal first and go through the portal within 5 seconds.
-- Ender pearls in dimensions different from the player slow down the game by waiting for exclusive world access to check
-  if they should despawn
-  - Workaround: `/gamerule enderPearlsVanishOnDeath false`
+- Fix leads detaching when using portals
+- Fix ender pearls ticking in different dimension than the player requiring exclusive world access

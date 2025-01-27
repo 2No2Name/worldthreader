@@ -2,6 +2,7 @@ package no2.worldthreader.mixin.core;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.players.PlayerList;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import no2.worldthreader.init.ModGameRules;
@@ -21,6 +22,9 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 	@Shadow protected abstract boolean haveTime();
 
 	@Shadow public abstract Iterable<ServerLevel> getAllLevels();
+
+	@Shadow
+	public abstract PlayerList getPlayerList();
 
 	@Unique
 	private boolean shouldUseMultithreading = ModGameRules.INITIAL_TRUE;
@@ -52,6 +56,8 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 		if (!(this.worldThreadingManager != null)) {
 			return this.getAllLevels();
 		}
+
+		this.worldThreadingManager.updateDeadPlayerSet(this.getPlayerList().getPlayers());
 
 		//Start of tick barrier
 		this.worldThreadingManager.setMultiThreadedPhase(true);
