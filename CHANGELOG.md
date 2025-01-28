@@ -3,6 +3,7 @@ Please report any issues you encounter to the [issue tracker of worldthreader](h
 
 ## Additions:
 
+- Add threadsafe dead player check for leads and ender pearls
 
 ## Fixes:
 
@@ -12,3 +13,7 @@ Please report any issues you encounter to the [issue tracker of worldthreader](h
 - Fix more teleportation bugs
 - Fix leads detaching when using portals
 - Fix ender pearls ticking in different dimension than the player requiring exclusive world access
+
+## Known issues
+
+- When worldthreader is disabled, a player holding a leash going through a portal before the leashed entity causes the leash to break.
