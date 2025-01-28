@@ -86,7 +86,7 @@ public class DimensionChangeHelper {
     }
 
     public static Entity restoreEntityInWorld(TeleportedEntityInfo entityInfo) {
-        List<TeleportedEntityInfo> passengerInfos = Objects.requireNonNullElse(entityInfo.passengers(), List.of());
+        List<TeleportedEntityInfo> passengerInfos = entityInfo.passengers();
 
         List<Entity> passengers = new ArrayList<>(passengerInfos.size());
         for (TeleportedEntityInfo passenger : passengerInfos) {

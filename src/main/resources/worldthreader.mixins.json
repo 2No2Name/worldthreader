@@ -8,9 +8,7 @@
     "core.MinecraftServerMixin",
     "core.ServerLevelMixin",
     "debug.ServerChunkCacheMixin",
-    "dimension_change.EntityAccessor",
     "dimension_change.ServerLevelMixin",
-    "dimension_change.TeleportTransitionMixin",
     "dimension_change.arrival.EntityMixin",
     "dimension_change.arrival.ItemEntityMixin",
     "dimension_change.arrival.NetherPortalBlockMixin",
@@ -24,11 +22,13 @@
     "dimension_change.departure.position.NetherPortalBlockMixin",
     "dimension_change.departure.triggers.EndPortalBlockMixin",
     "dimension_change.departure.triggers.NetherPortalBlockMixin",
-    "dimension_change.departure.triggers.ThrownEnderpearlMixin",
+    "dimension_change.departure.triggers.ender_pearl.ServerPlayerMixin",
+    "dimension_change.departure.triggers.ender_pearl.ThrownEnderpearlMixin",
     "dimension_change.player.instance_swap.PlayerListMixin",
     "dimension_change.player.instance_swap.PlayerMixin",
     "dimension_change.player.instance_swap.ServerGamePacketListenerImplMixin",
     "dimension_change.player.instance_swap.ServerPlayerMixin",
+    "dimension_change.recover_failure.ArmorStandMixin",
     "dimension_change.recover_failure.EntityMixin",
     "dimension_change.recover_failure.MobEntityMixin",
     "dimension_change.recover_failure.ServerPlayerMixin",
@@ -51,16 +51,15 @@
     "threading_compatibility.WeatherCommandMixin",
     "threading_compatibility.WhitelistCommandMixin",
     "threading_compatibility.WorldBorderCommandMixin",
-    "threading_compatibility.dedicated_server_console.DedicatedServer$ConsoleHandlerThreadMixin",
-    "threading_compatibility.dedicated_server_console.DedicatedServerMixin",
     "threading_compatibility.entity_owners.ItemEntityMixin",
     "threading_compatibility.entity_owners.PrimedTntMixin",
     "threading_compatibility.entity_owners.ProjectileMixin",
     "threading_compatibility.entity_owners.VexCopyOwnerTargetGoalMixin",
     "threading_compatibility.entity_owners.VexMixin",
+    "threading_compatibility.fixes.dedicated_server_console.DedicatedServer$ConsoleHandlerThreadMixin",
+    "threading_compatibility.fixes.dedicated_server_console.DedicatedServerMixin",
     "threadsafe_scoreboard.ObjectiveMixin",
     "threadsafe_scoreboard.PlayerScoresMixin",
-    "threadsafe_scoreboard.ScoreboardAccess",
     "threadsafe_scoreboard.ScoreboardCommandMixin",
     "threadsafe_scoreboard.ScoreboardMixin",
     "threadsafe_scoreboard.ScoreboardSaveDataMixin",
@@ -73,7 +72,7 @@
     "threadsafe_scoreboard.teams.ServerScoreboardMixin"
   ],
   "client": [
-    "threading_compatibility.DebugScreenOverlayMixin"
+    "threading_compatibility.fixes.DebugScreenOverlayMixin"
   ],
   "injectors": {
     "defaultRequire": 1

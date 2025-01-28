@@ -178,6 +178,8 @@ public class WorldThreadingManager {
 	 * For some reason the current thread (current ticking its world) wants to access another world.
 	 * To guarantee some level of thread-safety, we need to wait until the thread of the other world is not modifying
 	 * its world - meaning that it ran into a barrier or also entered this function.
+	 * For now, acquiring exclusive access for all worlds at once. This can probably be changed, but then some
+	 * threads will have to give away their exclusive access when requesting even more exclusive access.
 	 * <p>
 	 * Once exclusive world access is ensured, we can proceed. Releasing the exclusive world access is not possible
 	 * until this thread runs into a barrier, because we cannot know for how long the thread is going to access the worlds.

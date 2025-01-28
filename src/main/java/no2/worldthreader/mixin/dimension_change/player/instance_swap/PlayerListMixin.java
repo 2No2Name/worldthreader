@@ -4,7 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import no2.worldthreader.common.mixin_support.interfaces.TransparentServerPlayerSwapper;
+import no2.worldthreader.common.mixin_support.interfaces.ServerPlayerInstanceSwapper;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Mixin(PlayerList.class)
-public abstract class PlayerListMixin implements TransparentServerPlayerSwapper {
+public abstract class PlayerListMixin implements ServerPlayerInstanceSwapper {
 
     @Shadow @Final private List<ServerPlayer> players;
 

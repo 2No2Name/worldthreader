@@ -35,11 +35,11 @@ public abstract class NetherPortalBlockMixin implements Portal {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;")
     )
     private BlockState avoidAccessingWrongWorld(Level otherWorld, BlockPos pos) {
-        if (!((MinecraftServerExtended) Objects.requireNonNull(otherWorld.getServer())).worldthreader$isTickMultithreaded()) {
-            return otherWorld.getBlockState(pos);
+        if (((MinecraftServerExtended) Objects.requireNonNull(otherWorld.getServer())).worldthreader$isTickMultithreaded()) {
+            //Code that is circumvented here was already evaluated during departure, results stored in TeleportedEntityInfo
+            return Blocks.AIR.defaultBlockState();
         }
-        //Code that is circumvented here was already evaluated in our moveToWorld method
-        return Blocks.AIR.defaultBlockState();
+        return otherWorld.getBlockState(pos);
     }
 
     /**
@@ -54,7 +54,7 @@ public abstract class NetherPortalBlockMixin implements Portal {
     )
     private Direction.Axis restorePortalAxis(Direction.Axis portalAxis, @Local(argsOnly = true) ServerLevel targetWorld) {
         TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) targetWorld).worldthreader$arrivingEntityInfo();
-        if (currentlyArrivingEntity != null) {
+        if (currentlyArrivingEntity != null && currentlyArrivingEntity.portalAxis() != null) {
             return currentlyArrivingEntity.portalAxis();
         }
         return portalAxis;
@@ -71,11 +71,11 @@ public abstract class NetherPortalBlockMixin implements Portal {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;")
     )
     private static BlockState avoidAccessingWrongWorld2(Level otherWorld, BlockPos pos) {
-        if (!((MinecraftServerExtended) Objects.requireNonNull(otherWorld.getServer())).worldthreader$isTickMultithreaded()) {
-            return otherWorld.getBlockState(pos);
+        if (((MinecraftServerExtended) Objects.requireNonNull(otherWorld.getServer())).worldthreader$isTickMultithreaded()) {
+            //Code that is circumvented here was already evaluated during departure, results stored in TeleportedEntityInfo
+            return Blocks.AIR.defaultBlockState();
         }
-        //Code that is circumvented here was already evaluated in our moveToWorld method
-        return Blocks.AIR.defaultBlockState();
+        return otherWorld.getBlockState(pos);
     }
 
     @ModifyArg(
@@ -84,7 +84,7 @@ public abstract class NetherPortalBlockMixin implements Portal {
     )
     private static Direction.Axis restorePortalAxis2(Direction.Axis portalAxis, @Local(argsOnly = true) ServerLevel targetWorld) {
         TeleportedEntityInfo currentlyArrivingEntity = targetWorld == null ? null : ((ServerWorldExtended) targetWorld).worldthreader$arrivingEntityInfo();
-        if (currentlyArrivingEntity != null) {
+        if (currentlyArrivingEntity != null && currentlyArrivingEntity.portalAxis() != null) {
             return currentlyArrivingEntity.portalAxis();
         }
         return portalAxis;
@@ -96,7 +96,7 @@ public abstract class NetherPortalBlockMixin implements Portal {
     )
     private static Vec3 restoreInPortalPos(Vec3 inPortalPos, @Local(argsOnly = true) ServerLevel targetWorld) {
         TeleportedEntityInfo currentlyArrivingEntity = targetWorld == null ? null : ((ServerWorldExtended) targetWorld).worldthreader$arrivingEntityInfo();
-        if (currentlyArrivingEntity != null) {
+        if (currentlyArrivingEntity != null && currentlyArrivingEntity.inPortalPos() != null) {
             return currentlyArrivingEntity.inPortalPos();
         }
         return inPortalPos;

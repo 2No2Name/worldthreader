@@ -1,4 +1,4 @@
-package no2.worldthreader.mixin.threading_compatibility.dedicated_server_console;
+package no2.worldthreader.mixin.threading_compatibility.fixes.dedicated_server_console;
 
 import com.mojang.datafixers.DataFixer;
 import net.minecraft.commands.CommandSourceStack;

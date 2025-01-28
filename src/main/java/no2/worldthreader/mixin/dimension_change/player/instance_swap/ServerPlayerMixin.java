@@ -17,7 +17,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
-import no2.worldthreader.common.mixin_support.interfaces.TransparentServerPlayerSwapper;
+import no2.worldthreader.common.mixin_support.interfaces.ServerPlayerInstanceSwapper;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -101,7 +101,7 @@ public abstract class ServerPlayerMixin {
         }
 
         //Swap the player with a new instance, what could go wrong?
-        ServerPlayer serverPlayer = ((TransparentServerPlayerSwapper) this.connection).worldthreader$swapRemovedPlayerWithNewCopy((ServerPlayer) (Object) this, newLevel);
+        ServerPlayer serverPlayer = ((ServerPlayerInstanceSwapper) this.connection).worldthreader$swapRemovedPlayerWithNewCopy((ServerPlayer) (Object) this, newLevel);
         newPlayerRef.set(serverPlayer);
     }
 

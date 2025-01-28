@@ -10,14 +10,14 @@ import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.server.network.ServerPlayerConnection;
-import no2.worldthreader.common.mixin_support.interfaces.TransparentServerPlayerSwapper;
+import no2.worldthreader.common.mixin_support.interfaces.ServerPlayerInstanceSwapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(ServerGamePacketListenerImpl.class)
 public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPacketListenerImpl
         implements ServerGamePacketListener,
-        TransparentServerPlayerSwapper,
+        ServerPlayerInstanceSwapper,
         ServerPlayerConnection,
         TickablePacketListener
 {
@@ -36,7 +36,7 @@ public abstract class ServerGamePacketListenerImplMixin extends ServerCommonPack
         if (this.player != previous) {
             throw new IllegalArgumentException("Players not matching before player swap.");
         }
-        this.player = ((TransparentServerPlayerSwapper)this.server.getPlayerList()).worldthreader$swapRemovedPlayerWithNewCopy(this.player, newLevel);
+        this.player = ((ServerPlayerInstanceSwapper) this.server.getPlayerList()).worldthreader$swapRemovedPlayerWithNewCopy(this.player, newLevel);
         this.resetPosition();
         return this.player;
     }

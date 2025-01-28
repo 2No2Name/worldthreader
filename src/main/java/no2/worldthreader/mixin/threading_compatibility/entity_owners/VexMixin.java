@@ -16,8 +16,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Objects;
-
 @Mixin(Vex.class)
 public abstract class VexMixin extends Entity implements TraceableEntity, UnsafeOwnerAccess {
 
@@ -31,13 +29,15 @@ public abstract class VexMixin extends Entity implements TraceableEntity, Unsafe
     // execution, as worldthreader has no way to detect whether the access is safe or not. For safe accesses, the
     // interface UnsafeOwnerAccess provides a method.
     @Inject(
-            method = "getOwner()Lnet/minecraft/world/entity/Mob;", at = @At("HEAD")
+            method = "getOwner()Lnet/minecraft/world/entity/Mob;",
+            at = @At("HEAD"),
+            cancellable = true
     )
     public void getOwner(CallbackInfoReturnable<Entity> cir) {
         Entity owner = this.owner;
         if (owner != null && owner.level() instanceof ServerLevel otherLevel && otherLevel != this.level() && WorldThreadingManager.hasToAcquireExclusiveAccessBeforeAccessing(otherLevel)) {
-            //Directly accessing the other level on the MinecraftServer will trigger worldthreader's serial fallback
-            Objects.requireNonNull(this.level().getServer()).getAllLevels();
+            //Disallow cross-dimensional owner access, as Vexes will attack the target of the owner, which may be almost any entity in the different dimension, which is not threadsafe
+            cir.setReturnValue(null);
         }
     }
 

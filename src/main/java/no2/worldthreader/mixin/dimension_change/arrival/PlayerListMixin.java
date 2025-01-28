@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
+import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -17,6 +18,9 @@ public class PlayerListMixin {
             method = "sendLevelInfo", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;overworld()Lnet/minecraft/server/level/ServerLevel;")
     )
     private ServerLevel getOverworldUnsafeIfArrivingEntityPhase(MinecraftServer instance, @Local(argsOnly = true) ServerLevel serverLevel) {
-        return ((MinecraftServerExtended) instance).worldthreader$getLevelUnsynchronized(Level.OVERWORLD);
+        if (WorldThreadingManager.isPlacingReceivedTeleports(serverLevel)) {
+            return ((MinecraftServerExtended) instance).worldthreader$getLevelUnsynchronized(Level.OVERWORLD);
+        }
+        return instance.overworld();
     }
 }

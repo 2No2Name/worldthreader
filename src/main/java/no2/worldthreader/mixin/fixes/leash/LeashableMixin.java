@@ -36,7 +36,7 @@ public interface LeashableMixin {
                 return !worldThreadingManager.deadPlayers.contains(serverPlayer.getUUID());
             }
         }
-        return instance.isAlive();
+        return instance.isAlive(); //TODO this is wrong when worldthreader is disabled, since the player swap still takes place when disabled
     }
 
     @ModifyConstant(

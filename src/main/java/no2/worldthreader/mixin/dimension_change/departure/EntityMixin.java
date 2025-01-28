@@ -28,7 +28,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
@@ -45,15 +44,15 @@ public abstract class EntityMixin implements EntityExtended {
 
 	@Shadow protected abstract TeleportTransition calculatePassengerTransition(TeleportTransition teleportTransition, Entity entity);
 
-	@Redirect(
+	@WrapOperation(
 			method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;calculatePassengerTransition(Lnet/minecraft/world/level/portal/TeleportTransition;Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/world/level/portal/TeleportTransition;")
 	)
-	private TeleportTransition getDummyPassengerTransition(Entity instance, TeleportTransition teleportTransition, Entity entity) {
+	private TeleportTransition getDummyPassengerTransition(Entity instance, TeleportTransition teleportTransition, Entity entity, Operation<TeleportTransition> original) {
 		if (DimensionChangeHelper.isDummy(teleportTransition)) {
 			return teleportTransition.transitionAsPassenger();
 		}
-		return ((EntityMixin) (Object) instance).calculatePassengerTransition(teleportTransition, entity);
+		return original.call(instance, teleportTransition, entity);
 	}
 
 	@WrapOperation(

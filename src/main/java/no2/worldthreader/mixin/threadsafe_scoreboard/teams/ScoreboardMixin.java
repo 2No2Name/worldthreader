@@ -60,7 +60,7 @@ public class ScoreboardMixin {
                     target = "Lnet/minecraft/world/scores/PlayerTeam;getPlayers()Ljava/util/Collection;"
             )
     )
-    private Collection<String> getUnsafePlayerSet(PlayerTeam playerTeam) {
+    private Collection<String> getMutablePlayerSet(PlayerTeam playerTeam) {
         return ((MutablePlayerTeam) playerTeam).worldthreader$getMutablePlayerSet();
     }
     @Inject(

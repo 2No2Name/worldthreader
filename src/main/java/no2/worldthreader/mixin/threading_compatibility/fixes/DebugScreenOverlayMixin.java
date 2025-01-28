@@ -1,4 +1,4 @@
-package no2.worldthreader.mixin.threading_compatibility;
+package no2.worldthreader.mixin.threading_compatibility.fixes;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.DebugScreenOverlay;

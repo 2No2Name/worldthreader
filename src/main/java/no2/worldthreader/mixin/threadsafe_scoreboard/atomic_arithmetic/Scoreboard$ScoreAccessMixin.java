@@ -17,13 +17,21 @@ public abstract class Scoreboard$ScoreAccessMixin implements ScoreAccess, Atomic
 
     @Shadow @Final Score val$score;
 
-    @Shadow @Final private boolean val$canModify;
+    @Shadow
+    @Final
+    public boolean val$canModify;
 
-    @Shadow @Final private MutableBoolean val$requiresSync;
+    @Shadow
+    @Final
+    public MutableBoolean val$requiresSync;
 
-    @Shadow @Final private Objective val$objective;
+    @Shadow
+    @Final
+    public Objective val$objective;
 
-    @Shadow @Final private ScoreHolder val$scoreHolder;
+    @Shadow
+    @Final
+    public ScoreHolder val$scoreHolder;
 
     @Shadow protected abstract void sendScoreToPlayers();
 

@@ -30,6 +30,7 @@ public abstract class NetherPortalBlockMixin implements Portal {
     )
     private static void storeNetherPortalAxisAndRelativePosition(Entity entity, BlockPos blockPos, BlockUtil.FoundRectangle foundRectangle, ServerLevel serverLevel, TeleportTransition.PostTeleportTransition postTeleportTransition, CallbackInfoReturnable<TeleportTransition> cir,
                                                                  @Local Direction.Axis portalAxis, @Local Vec3 relativeInPortalPos) {
+        //If these 3 values are null, this is worldthreader's additional call for getting the relative position only upon departure without accessing the destination world
         if (foundRectangle == null && serverLevel == null && postTeleportTransition == null) {
             cir.setReturnValue(null);
             if (ThreadLocals.NETHER_PORTAL_POSITION_INFO.get() != null) {

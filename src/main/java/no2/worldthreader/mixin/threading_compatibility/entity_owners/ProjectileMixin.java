@@ -29,6 +29,9 @@ public abstract class ProjectileMixin extends Entity implements TraceableEntity,
     @Nullable
     public UUID ownerUUID;
 
+    @Shadow
+    public abstract @Nullable Entity getOwner();
+
     public ProjectileMixin(EntityType<? extends ThrowableItemProjectile> entityType, Level level) {
         super(entityType, level);
     }

@@ -1,15 +1,18 @@
 package no2.worldthreader.mixin.entity_id_wireless_redstone_fix;
 
+import net.minecraft.server.level.ServerLevel;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldWithWirelessRedstoneFix;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import net.minecraft.server.level.ServerLevel;
 
 @Mixin(ServerLevel.class)
 public class ServerWorldMixin implements ServerWorldWithWirelessRedstoneFix {
 
+    @Unique
     private static final int ENTITY_ID_STRIDE = 4;
+    @Unique
     private int entityIdChoice = 0;
 
     /**
