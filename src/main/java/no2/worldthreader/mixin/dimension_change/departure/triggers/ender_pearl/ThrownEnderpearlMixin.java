@@ -14,11 +14,11 @@ import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended
 import no2.worldthreader.common.mixin_support.interfaces.UnsafeOwnerAccess;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import no2.worldthreader.mixin.threading_compatibility.entity_owners.ProjectileMixin;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.Objects;
@@ -73,9 +73,9 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements U
 
     @WrapOperation(
             method = "tick",
-            at = {
-                    @At(value = "CONSTANT", args = "classValue=net/minecraft/server/level/ServerPlayer", opcode = Opcodes.INSTANCEOF, ordinal = 0), //Ordinal 1 targets CHECKCAST for some reason
-                    @At(value = "CONSTANT", args = "classValue=net/minecraft/server/level/ServerPlayer", opcode = Opcodes.INSTANCEOF, ordinal = 2)
+            constant = {
+                    @Constant(classValue = ServerPlayer.class, ordinal = 0), //Ordinal 1 targets CHECKCAST for some reason
+                    @Constant(classValue = ServerPlayer.class, ordinal = 2)
             }
     )
     private boolean handleNullPlayer(Object object, Operation<Boolean> original) {
