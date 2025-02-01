@@ -1,4 +1,4 @@
-package no2.worldthreader.mixin.threading_compatibility;
+package no2.worldthreader.mixin.threading_compatibility.commands;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;

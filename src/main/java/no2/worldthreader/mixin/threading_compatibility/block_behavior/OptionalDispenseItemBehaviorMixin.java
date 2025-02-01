@@ -1,4 +1,4 @@
-package no2.worldthreader.mixin.threading_compatibility;
+package no2.worldthreader.mixin.threading_compatibility.block_behavior;
 
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import org.spongepowered.asm.mixin.Mixin;
