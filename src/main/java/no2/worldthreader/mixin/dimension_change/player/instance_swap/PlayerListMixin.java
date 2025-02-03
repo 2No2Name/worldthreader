@@ -33,6 +33,7 @@ public abstract class PlayerListMixin implements ServerPlayerInstanceSwapper {
         //Create the player with a null level, which is set a bit later. The constructor uses the level to adjust the spawn position etc., which is not needed when copying the player.
         //noinspection DataFlowIssue
         ServerPlayer newPlayer = new ServerPlayer(this.server, null, previousPlayer.getGameProfile(), previousPlayer.clientInformation());
+        newPlayer.setServerLevel(newLevel);
 
         newPlayer.connection = previousPlayer.connection;
         newPlayer.restoreFrom(previousPlayer, true);
@@ -51,10 +52,7 @@ public abstract class PlayerListMixin implements ServerPlayerInstanceSwapper {
             this.playersByUUID.put(newPlayer.getUUID(), newPlayer);
         }
 
-        //Loot context or so needs the minecraft server and the random instance from the level
-        newPlayer.setServerLevel(newLevel);
         newPlayer.initInventoryMenu();
-        newPlayer.setServerLevel(null);
 
         newPlayer.setHealth(newPlayer.getHealth());
 

@@ -100,6 +100,10 @@ public abstract class ServerPlayerMixin {
             throw new AssertionError("Worldthreader: Ordinals of Local Capture are incorrect!");
         }
 
+        if (WorldThreadingManager.isWrongThreadForWorld(newLevel)) {
+            throw new IllegalStateException("Worldthreader: Must create new player on destination world thread!");
+        }
+
         //Swap the player with a new instance, what could go wrong?
         ServerPlayer serverPlayer = ((ServerPlayerInstanceSwapper) this.connection).worldthreader$swapRemovedPlayerWithNewCopy((ServerPlayer) (Object) this, newLevel);
         newPlayerRef.set(serverPlayer);
