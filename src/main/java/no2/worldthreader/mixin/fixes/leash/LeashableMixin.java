@@ -35,8 +35,12 @@ public interface LeashableMixin {
             if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase()) {
                 return !worldThreadingManager.deadPlayers.contains(serverPlayer.getUUID());
             }
+            return !serverPlayer.isDeadOrDying();
+            //TODO this is wrong when worldthreader is disabled and the player dies after changing
+            // dimension. In vanilla the leash breaks, with worldthreader it
+            // probably doesn't. However, this issue is very minor and won't be worked on until users bring it up.
         }
-        return instance.isAlive(); //TODO this is wrong when worldthreader is disabled, since the player swap still takes place when disabled
+        return instance.isAlive();
     }
 
     @ModifyConstant(

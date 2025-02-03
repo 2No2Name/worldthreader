@@ -8,4 +8,3 @@ Please report any issues you encounter to the [issue tracker of worldthreader](h
 
 ## Known issues
 
-- When worldthreader is disabled, a player holding a leash going through a portal before the leashed entity causes the leash to break.
