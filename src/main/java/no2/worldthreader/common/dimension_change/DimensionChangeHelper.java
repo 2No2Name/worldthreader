@@ -55,7 +55,7 @@ public class DimensionChangeHelper {
 
         Entity newEntity = arriveIntoWorld(teleportedEntityInfo, oldEntityObject, destination, source, teleportTransition);
 
-        if (ModGameRules.SHOULD_TICK_ENTITY_AFTER_TELEPORT && ServerWorldTicking.isMainWorld(destination)) {
+        if (ServerWorldTicking.isMainWorld(destination) && destination.getGameRules().getBoolean(ModGameRules.TELEPORTED_ENTITY_ADDITIONAL_TICK.getKey())) {
             newEntity.tick();
             //Small todo: maybe use a collection and then tick all of the ones in the collection, avoids issue where the others didn't arrive yet and thus no interaction takes place (would only avoid this for the teleported ones though)
         }

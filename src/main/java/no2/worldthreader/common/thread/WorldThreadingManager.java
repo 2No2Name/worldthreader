@@ -28,8 +28,7 @@ import static no2.worldthreader.init.ModGameRules.INITIAL_FALSE;
 
 public class WorldThreadingManager {
 
-	@SuppressWarnings("FieldMayBeFinal")
-	public static boolean DEBUG = INITIAL_FALSE;
+	public static boolean DEBUG = INITIAL_FALSE; //This should not be static, but it is used for debugging only
 
 	private final MinecraftServer server;
 	private final Phaser tickBarrier;

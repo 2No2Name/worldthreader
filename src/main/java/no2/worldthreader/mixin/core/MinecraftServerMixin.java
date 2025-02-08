@@ -3,6 +3,7 @@ package no2.worldthreader.mixin.core;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.level.GameRules;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import no2.worldthreader.init.ModGameRules;
@@ -26,8 +27,9 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 	@Shadow
 	public abstract PlayerList getPlayerList();
 
-	@Unique
-	private boolean shouldUseMultithreading = ModGameRules.INITIAL_TRUE;
+	@Shadow
+	public abstract GameRules getGameRules();
+
 	@Unique
 	private WorldThreadingManager worldThreadingManager;
 
@@ -38,7 +40,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 			this.worldThreadingManager = null;
 		}
 
-		if (this.shouldUseMultithreading) {
+		if (this.getGameRules().getBoolean(ModGameRules.ACTIVE.getKey())) {
 			this.worldThreadingManager = new WorldThreadingManager((MinecraftServer) (Object) this);
 		}
 	}
@@ -49,11 +51,11 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 			require = 1, allow = 1
 	)
 	private Iterable<ServerLevel> multiThreadWorldLoop(MinecraftServer instance) {
-		if (this.shouldUseMultithreading == !(this.worldThreadingManager != null)) {
+		if (this.getGameRules().getBoolean(ModGameRules.ACTIVE.getKey()) == (this.worldThreadingManager == null)) {
 			this.replaceWorldThreadingManager();
 		}
 
-		if (!(this.worldThreadingManager != null)) {
+		if (this.worldThreadingManager == null) {
 			return this.getAllLevels();
 		}
 
@@ -89,11 +91,6 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 		if (this.worldThreadingManager != null) {
 			this.worldThreadingManager.terminate();
 		}
-	}
-
-	@Override
-	public void worldthreader$setThreadingEnabled(boolean value) {
-		this.shouldUseMultithreading = value;
 	}
 
 	@Override
