@@ -58,7 +58,11 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
             ArrayList<TeleportedEntityInfo> teleportedEntityList = this.receivedEntities.remove(source);
             if (teleportedEntityList != null) {
                 for (TeleportedEntityInfo teleportedEntity : teleportedEntityList) {
-                    DimensionChangeHelper.nonPassengerArriveInWorld(teleportedEntity, teleportedEntity.oldEntityObject(), (ServerLevel) (Object) this, (ServerLevel) teleportedEntity.oldEntityObject().level());
+                    try {
+                        DimensionChangeHelper.nonPassengerArriveInWorld(teleportedEntity, teleportedEntity.oldEntityObject(), (ServerLevel) (Object) this, (ServerLevel) teleportedEntity.oldEntityObject().level());
+                    } catch (Exception e) {
+                        throw new IllegalStateException("Worldthreader: Failed to receive teleported entity: " + teleportedEntity + " in dimension " + this.dimension() + "!", e);
+                    }
                 }
             }
         }

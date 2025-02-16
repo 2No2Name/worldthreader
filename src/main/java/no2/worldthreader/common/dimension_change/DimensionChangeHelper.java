@@ -3,6 +3,7 @@ package no2.worldthreader.common.dimension_change;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.PortalProcessor;
 import net.minecraft.world.level.portal.TeleportTransition;
 import no2.worldthreader.common.ServerWorldTicking;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
@@ -44,7 +45,18 @@ public class DimensionChangeHelper {
             teleportTransition = teleportedEntityInfo.entityTransition();
         } else {
             ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(teleportedEntityInfo);
-            teleportTransition = Objects.requireNonNull(oldEntityObject.portalProcess).getPortalDestination(source, oldEntityObject);
+
+            //Server players might be able to move after starting to teleport (packets being sent from the client, sent
+            // before client knows about changing dimensions) This is why the entry position of the portal processor
+            // must be updated to the original position.
+            //Furthermore, using oldEntityObject.portalProcessor is not safe, as it might be null, since a moved player
+            // will also be ticked (the network connection tick ticks the serverside player entity), removing the portal
+            // processor if the player is no longer intersecting the portal.
+            // Related to https://github.com/2No2Name/worldthreader/issues/12
+            PortalProcessor portalProcessor = Objects.requireNonNull(teleportedEntityInfo.portalProcessor());
+            portalProcessor.updateEntryPosition(teleportedEntityInfo.portalProcessorPos());
+
+            teleportTransition = portalProcessor.getPortalDestination(source, oldEntityObject);
             ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(previous);
         }
 

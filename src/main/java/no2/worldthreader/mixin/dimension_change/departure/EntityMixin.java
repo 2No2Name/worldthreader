@@ -32,6 +32,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin implements EntityExtended {
@@ -118,8 +119,9 @@ public abstract class EntityMixin implements EntityExtended {
 			if (teleportedEntityInfos == null) {
                 teleportedEntityInfos = List.of();
             }
+			PortalProcessor portalProcessor = isDestinationUnknown && !teleportTransition.asPassenger() ? Objects.requireNonNull(this.portalProcess) : null;
 			//noinspection DataFlowIssue
-			TeleportedEntityInfo entityInfo = new TeleportedEntityInfo((Entity) (Object) this, entityNBT, isDestinationUnknown ? null : teleportTransition, portalAxis, inPortalPos, teleportedEntityInfos);
+			TeleportedEntityInfo entityInfo = new TeleportedEntityInfo((Entity) (Object) this, entityNBT, isDestinationUnknown ? null : teleportTransition, portalProcessor, portalAxis, inPortalPos, teleportedEntityInfos);
 
 			// [VanillaCopy] teleportCrossDimensions
 			this.removeAfterChangingDimensions();
