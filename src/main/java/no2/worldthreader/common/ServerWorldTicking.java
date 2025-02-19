@@ -1,6 +1,7 @@
 package no2.worldthreader.common;
 
 import net.minecraft.CrashReport;
+import net.minecraft.CrashReportCategory;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.profiling.Profiler;
@@ -87,11 +88,17 @@ public class ServerWorldTicking {
         }
     }
 
-    private static void delegateCrash(Throwable throwable, String title, ServerLevel serverWorld, WorldThreadingManager worldThreadingManager) {
+    private static void delegateCrash(Throwable throwable, String title, ServerLevel serverLevel, WorldThreadingManager worldThreadingManager) {
+        String serverLevelOwner = ((ThreadOwnedObject) serverLevel).worldthreader$getOwningThread().getName();
+        String chunkCacheOwner = ((ThreadOwnedObject) serverLevel.getChunkSource()).worldthreader$getOwningThread().getName();
         worldThreadingManager.tryGiveAwayExclusiveWorldAccess(); //If the exception was thrown while this thread held exclusive access, it must be returned.
 
         CrashReport crashReport = CrashReport.forThrowable(throwable, title);
-        serverWorld.fillReportDetails(crashReport);
+        serverLevel.fillReportDetails(crashReport);
+        CrashReportCategory worldthreaderCrashInfo = crashReport.addCategory("WorldThreader");
+        worldthreaderCrashInfo.setDetail("Crashing thread", Thread.currentThread().getName());
+        worldthreaderCrashInfo.setDetail("Level owner", serverLevelOwner);
+        worldthreaderCrashInfo.setDetail("ChunkCache owner", chunkCacheOwner);
         worldThreadingManager.handleCrash(crashReport);
     }
 
