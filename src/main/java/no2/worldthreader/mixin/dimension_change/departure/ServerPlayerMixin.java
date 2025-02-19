@@ -36,11 +36,13 @@ public abstract class ServerPlayerMixin extends Player implements EntityExtended
             at = @At(value = "HEAD")
     )
     private void check(TeleportTransition teleportTransition, CallbackInfoReturnable<ServerPlayer> cir) {
-        if (DimensionChangeHelper.isDummy(teleportTransition) && !teleportTransition.asPassenger()) {
+        //noinspection ConstantValue
+        if (DimensionChangeHelper.isDummy(teleportTransition) && !teleportTransition.asPassenger() && ((Class<?>) this.getClass() == ServerPlayer.class)) {
             throw new IllegalStateException("Worldthreader: Player teleported with dummy transition!");
         }
     }
 
+    @SuppressWarnings("ConstantValue")
     @Inject(
             method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;removePlayerImmediately(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/world/entity/Entity$RemovalReason;)V", shift = At.Shift.AFTER),
@@ -58,8 +60,11 @@ public abstract class ServerPlayerMixin extends Player implements EntityExtended
 
             if (teleportTransition.asPassenger()) {
                 ((ServerWorldExtended) this.serverLevel()).worldthreader$putDepartingPassengerEntityInfo(entityInfo);
-            } else {
+            } else if (ServerPlayer.class == (Class<?>) this.getClass()) {
                 throw new IllegalStateException("Worldthreader: Player unexpectedly tried to teleport as passenger without being a passenger!");
+            } else {
+                //Support for carpet mod players using portals
+                ((ServerWorldExtended) teleportTransition.newLevel()).worldthreader$receiveTeleportedEntity(this.level().dimension(), entityInfo);
             }
             cir.setReturnValue(null);
         }

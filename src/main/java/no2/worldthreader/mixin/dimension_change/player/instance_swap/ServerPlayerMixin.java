@@ -18,6 +18,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import no2.worldthreader.common.mixin_support.interfaces.ServerPlayerInstanceSwapper;
+import no2.worldthreader.common.thread.ThreadLocals;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,7 +42,7 @@ public abstract class ServerPlayerMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getSharedSpawnPos()Lnet/minecraft/core/BlockPos;")
     )
     private static BlockPos handleNullWorld(ServerLevel serverLevel, Operation<BlockPos> original) {
-        if (serverLevel == null) {
+        if (ThreadLocals.PLAYER_SWAP_4_LEVEL.get() == serverLevel) {
             return BlockPos.ZERO;
         }
         return original.call(serverLevel);
@@ -52,7 +53,7 @@ public abstract class ServerPlayerMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getSharedSpawnAngle()F")
     )
     private static float handleNullWorld1(ServerLevel serverLevel, Operation<Float> original) {
-        if (serverLevel == null) {
+        if (ThreadLocals.PLAYER_SWAP_4_LEVEL.get() == serverLevel) {
             return 0.0F;
         }
         return original.call(serverLevel);
@@ -63,7 +64,7 @@ public abstract class ServerPlayerMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;adjustSpawnLocation(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/BlockPos;")
     )
     private BlockPos handleNullWorld2(ServerPlayer instance, ServerLevel serverLevel, BlockPos blockPos, Operation<BlockPos> original) {
-        if (serverLevel == null) {
+        if (ThreadLocals.PLAYER_SWAP_4_LEVEL.get() == serverLevel) {
             return blockPos;
         }
         return original.call(instance, serverLevel, blockPos);

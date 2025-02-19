@@ -8,6 +8,7 @@ import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PortalProcessor;
 import net.minecraft.world.level.Level;
@@ -69,10 +70,13 @@ public abstract class EntityMixin implements EntityExtended {
 
 			//This call should call worldthreader$putDepartingPassengerEntityInfo and return null, unlike vanilla, which returns the new entity for the destination level
 			var ret = original.call(passenger, teleportTransition);
-			if (ret != null) {
-                throw new IllegalStateException("Worldthreader: Teleportation was finished unexpectedly!");
-            }
+
 			TeleportedEntityInfo teleportedEntityInfo = ((ServerWorldExtended) this.level()).worldthreader$removeDepartingEntityInfo();
+			if (ret != null &&
+					!(ret instanceof ServerPlayer && ret.getClass() != ServerPlayer.class && teleportedEntityInfo != null) // Carpet fake player compatibility (as passenger), do not throw as carpet just returns the new instance from the network connection
+			) {
+				throw new IllegalStateException("Worldthreader: Teleportation was finished unexpectedly!");
+			}
 			if (teleportedEntityInfo == null) {
 				//Teleport of passenger failed, do not add to list of received passengers as vanilla
 				return null;

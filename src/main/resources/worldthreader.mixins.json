@@ -25,7 +25,6 @@
     "dimension_change.departure.triggers.ender_pearl.ServerPlayerMixin",
     "dimension_change.departure.triggers.ender_pearl.ThrownEnderpearlMixin",
     "dimension_change.player.instance_swap.PlayerListMixin",
-    "dimension_change.player.instance_swap.PlayerMixin",
     "dimension_change.player.instance_swap.ServerGamePacketListenerImplMixin",
     "dimension_change.player.instance_swap.ServerPlayerMixin",
     "dimension_change.recover_failure.ArmorStandMixin",
