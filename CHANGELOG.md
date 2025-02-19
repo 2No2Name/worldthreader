@@ -1,14 +1,13 @@
-Worldthreader 2.0.6 for Minecraft 1.21.4 fixes a crash and a gamerule issue.
+Worldthreader 2.0.7 for Minecraft 1.21.4 fixes a compatibility issue with fabric-carpet's bot players.
 Please report any issues you encounter to the [issue tracker of worldthreader](https://github.com/2No2Name/worldthreader/issues). As worldthreader likely comes with massive mod compatibility issues, please do not report crashes and issues to other mods' issue trackers before confirming the issue without worldthreader.
 
-## Additions:
+## Changes:
 
-- Add thread information to crashes
+- Rework player instance swap for mod compatibility
 
 ## Fixes:
 
-- Fix rare crash when players try to leave a portal during teleportation (#12)
-- Correctly load the gamerules on server restart (still broken for debug gamerule)
+- Fix crashes with carpet fake players
 
 ## Known issues
 
