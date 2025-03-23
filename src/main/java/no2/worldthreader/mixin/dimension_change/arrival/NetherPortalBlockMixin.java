@@ -11,14 +11,12 @@ import net.minecraft.world.level.block.Portal;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
-import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
+import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-import java.util.Objects;
 
 @Mixin(NetherPortalBlock.class)
 public abstract class NetherPortalBlockMixin implements Portal {
@@ -34,12 +32,12 @@ public abstract class NetherPortalBlockMixin implements Portal {
             method = "getExitPortal(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;ZLnet/minecraft/world/level/border/WorldBorder;)Lnet/minecraft/world/level/portal/TeleportTransition;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;")
     )
-    private BlockState avoidAccessingWrongWorld(Level otherWorld, BlockPos pos) {
-        if (((MinecraftServerExtended) Objects.requireNonNull(otherWorld.getServer())).worldthreader$isTickMultithreaded()) {
+    private BlockState avoidAccessingWrongWorld(Level departureWorld, BlockPos pos) {
+        if (departureWorld instanceof ServerLevel serverLevel && WorldThreadingManager.isWrongThreadForWorld(serverLevel)) {
             //Code that is circumvented here was already evaluated during departure, results stored in TeleportedEntityInfo
             return Blocks.AIR.defaultBlockState();
         }
-        return otherWorld.getBlockState(pos);
+        return departureWorld.getBlockState(pos);
     }
 
     /**
@@ -70,12 +68,12 @@ public abstract class NetherPortalBlockMixin implements Portal {
             method = "getDimensionTransitionFromExit(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/BlockUtil$FoundRectangle;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;")
     )
-    private static BlockState avoidAccessingWrongWorld2(Level otherWorld, BlockPos pos) {
-        if (((MinecraftServerExtended) Objects.requireNonNull(otherWorld.getServer())).worldthreader$isTickMultithreaded()) {
+    private static BlockState avoidAccessingWrongWorld2(Level departureWorld, BlockPos pos) {
+        if (departureWorld instanceof ServerLevel serverLevel && WorldThreadingManager.isWrongThreadForWorld(serverLevel)) {
             //Code that is circumvented here was already evaluated during departure, results stored in TeleportedEntityInfo
             return Blocks.AIR.defaultBlockState();
         }
-        return otherWorld.getBlockState(pos);
+        return departureWorld.getBlockState(pos);
     }
 
     @ModifyArg(
