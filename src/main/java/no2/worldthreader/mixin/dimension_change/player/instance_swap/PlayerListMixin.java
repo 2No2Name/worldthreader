@@ -166,6 +166,17 @@ public abstract class PlayerListMixin implements ServerPlayerInstanceSwapper {
 
     @WrapOperation(
             method = "respawn(Lnet/minecraft/server/level/ServerPlayer;ZLnet/minecraft/world/entity/Entity$RemovalReason;)Lnet/minecraft/server/level/ServerPlayer;",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;teleport(DDDFF)V")
+
+    )
+    private void connectionTeleportIfNotSwap(ServerGamePacketListenerImpl instance, double d, double e, double f, float g, float h, Operation<Void> original, @Share("IsNotPlayerSwap") LocalBooleanRef isNotPlayerSwap) {
+        if (isNotPlayerSwap.get()) {
+            original.call(instance, d, e, f, g, h);
+        }
+    }
+
+    @WrapOperation(
+            method = "respawn(Lnet/minecraft/server/level/ServerPlayer;ZLnet/minecraft/world/entity/Entity$RemovalReason;)Lnet/minecraft/server/level/ServerPlayer;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getSharedSpawnPos()Lnet/minecraft/core/BlockPos;")
     )
     private BlockPos getSharedSpawnPosIfNotSwap(ServerLevel instance, Operation<BlockPos> original, @Share("IsNotPlayerSwap") LocalBooleanRef isNotPlayerSwap) {
