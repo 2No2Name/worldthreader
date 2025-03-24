@@ -1,5 +1,6 @@
 package no2.worldthreader.mixin.threading_compatibility.block_behavior.patterns;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.WitherSkullBlock;
 import net.minecraft.world.level.block.state.pattern.BlockPattern;
 import no2.worldthreader.common.mixin_support.interfaces.BeforeThreadingInitialization;
@@ -17,7 +18,7 @@ public abstract class WitherSkullBlockMixin implements BeforeThreadingInitializa
 
 
     @Override
-    public void worldthreader$initBeforeThreading() {
+    public void worldthreader$initBeforeThreading(MinecraftServer server) {
         getOrCreateWitherBase();
         getOrCreateWitherFull();
     }

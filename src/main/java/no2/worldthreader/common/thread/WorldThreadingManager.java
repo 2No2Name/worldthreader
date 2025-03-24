@@ -50,7 +50,7 @@ public class WorldThreadingManager {
 
 
 	public WorldThreadingManager(MinecraftServer server) {
-		WorldThreaderMod.initializeBeforeThreading();
+		WorldThreaderMod.initializeBeforeThreading(server);
 
 		this.server = server;
 		this.tickBarrier = new Phaser();

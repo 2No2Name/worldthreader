@@ -1,6 +1,7 @@
 package no2.worldthreader;
 
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.Blocks;
 import no2.worldthreader.common.mixin_support.interfaces.BeforeThreadingInitialization;
 import no2.worldthreader.init.ModGameRules;
@@ -17,9 +18,10 @@ public class WorldThreaderMod implements ModInitializer {
 		ModGameRules.registerGameRules();
 	}
 
-	public static void initializeBeforeThreading() {
-		((BeforeThreadingInitialization) Blocks.CARVED_PUMPKIN).worldthreader$initBeforeThreading();
-		((BeforeThreadingInitialization) Blocks.END_PORTAL_FRAME).worldthreader$initBeforeThreading();
-		((BeforeThreadingInitialization) Blocks.WITHER_SKELETON_SKULL).worldthreader$initBeforeThreading();
+	public static void initializeBeforeThreading(MinecraftServer server) {
+		((BeforeThreadingInitialization) Blocks.CARVED_PUMPKIN).worldthreader$initBeforeThreading(server);
+		((BeforeThreadingInitialization) Blocks.END_PORTAL_FRAME).worldthreader$initBeforeThreading(server);
+		((BeforeThreadingInitialization) Blocks.WITHER_SKELETON_SKULL).worldthreader$initBeforeThreading(server);
+		((BeforeThreadingInitialization) Blocks.REDSTONE_TORCH).worldthreader$initBeforeThreading(server);
 	}
 }

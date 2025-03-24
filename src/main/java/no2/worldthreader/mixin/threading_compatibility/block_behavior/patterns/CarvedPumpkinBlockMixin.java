@@ -1,5 +1,6 @@
 package no2.worldthreader.mixin.threading_compatibility.block_behavior.patterns;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.CarvedPumpkinBlock;
 import net.minecraft.world.level.block.state.pattern.BlockPattern;
 import no2.worldthreader.common.mixin_support.interfaces.BeforeThreadingInitialization;
@@ -23,7 +24,7 @@ public abstract class CarvedPumpkinBlockMixin implements BeforeThreadingInitiali
 
 
     @Override
-    public void worldthreader$initBeforeThreading() {
+    public void worldthreader$initBeforeThreading(MinecraftServer server) {
         this.getOrCreateSnowGolemBase();
         this.getOrCreateSnowGolemFull();
 

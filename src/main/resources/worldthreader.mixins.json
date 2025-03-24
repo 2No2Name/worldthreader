@@ -42,6 +42,7 @@
     "threading_compatibility.MinecraftServerMixin",
     "threading_compatibility.PlayerListMixin",
     "threading_compatibility.PrimaryLevelDataMixin",
+    "threading_compatibility.RedstoneTorchBlockMixin",
     "threading_compatibility.ServerLevelMixin",
     "threading_compatibility.ServerPlayerMixin",
     "threading_compatibility.ServerTickRateManagerMixin",
