@@ -120,14 +120,6 @@ public abstract class ServerPlayerMixin {
     }
     @ModifyReceiver(
             method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
-            at = @At(value = "INVOKE", target= "Lnet/minecraft/server/level/ServerPlayer;position()Lnet/minecraft/world/phys/Vec3;"),
-            slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;unsetRemoved()V"))
-    )
-    private ServerPlayer useNewPlayer1(ServerPlayer instance, @Share("NewPlayer") LocalRef<ServerPlayer> newPlayerRef) {
-        return newPlayerRef.get();
-    }
-    @ModifyReceiver(
-            method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
             at = @At(value = "FIELD", target= "Lnet/minecraft/server/level/ServerPlayer;enteredNetherPosition:Lnet/minecraft/world/phys/Vec3;"),
             slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;unsetRemoved()V"))
     )
