@@ -1,6 +1,5 @@
 package no2.worldthreader.mixin.threadsafe_scoreboard;
 
-import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.numbers.NumberFormat;
 import net.minecraft.world.scores.Score;
@@ -13,14 +12,12 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 @Mixin(Score.class)
 public abstract class ScoreMixin implements AtomicArithmeticScore {
@@ -39,7 +36,7 @@ public abstract class ScoreMixin implements AtomicArithmeticScore {
 
 
     @Inject(
-            method = "<init>",
+            method = {"<init>(IZLjava/util/Optional;Ljava/util/Optional;)V", "<init>()V"},
             at = @At("RETURN")
     )
     private void init(CallbackInfo ci) {
@@ -134,52 +131,15 @@ public abstract class ScoreMixin implements AtomicArithmeticScore {
 
 
     @Redirect(
-            method = "write", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;value:I", opcode = Opcodes.GETFIELD)
+            method = "method_67452", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;display:Lnet/minecraft/network/chat/Component;", opcode = Opcodes.GETFIELD)
     )
-    private int fieldAccess(Score instance) {
-        return instance.value();
-    }
-    @Redirect(
-            method = "write", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;locked:Z", opcode = Opcodes.GETFIELD)
-    )
-    private boolean fieldAccess1(Score instance) {
-        return instance.isLocked();
-    }
-    @Redirect(
-            method = "write", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;display:Lnet/minecraft/network/chat/Component;", opcode = Opcodes.GETFIELD), require = 2
-    )
-    private Component fieldAccess2(Score instance) {
+    private static Component getAtomicDisplay(Score instance) {
         return instance.display();
     }
     @Redirect(
-            method = "write", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;numberFormat:Lnet/minecraft/network/chat/numbers/NumberFormat;", opcode = Opcodes.GETFIELD), require = 2
+            method = "method_67451", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;numberFormat:Lnet/minecraft/network/chat/numbers/NumberFormat;", opcode = Opcodes.GETFIELD)
     )
-    private NumberFormat fieldAccess3(Score instance) {
+    private static NumberFormat getAtomicNumberFormat(Score instance) {
         return instance.numberFormat();
-    }
-
-    @Redirect(
-            method = "read", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;value:I", opcode = Opcodes.PUTFIELD)
-    )
-    private static void fieldWrite(Score instance, int value) {
-        instance.value(value);
-    }
-    @Redirect(
-            method = "read", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;locked:Z", opcode = Opcodes.PUTFIELD)
-    )
-    private static void fieldWrite1(Score instance, boolean locked) {
-        instance.setLocked(locked);
-    }
-    @Redirect(
-            method = "read", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;display:Lnet/minecraft/network/chat/Component;", opcode = Opcodes.PUTFIELD)
-    )
-    private static void fieldWrite2(Score instance, Component component) {
-        instance.display(component);
-    }
-    @ModifyArg(
-            method = "read", at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/DataResult;ifSuccess(Ljava/util/function/Consumer;)Lcom/mojang/serialization/DataResult;", remap = false)
-    )
-    private static Consumer<?> fieldWrite3(Consumer<?> ifSuccess, @Local Score score) {
-        return numberFormat -> score.numberFormat((NumberFormat) numberFormat);
     }
 }

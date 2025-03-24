@@ -1,7 +1,6 @@
 package no2.worldthreader.mixin.dimension_change.recover_failure;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Leashable;
@@ -30,7 +29,7 @@ public abstract class EntityMixin implements EntityExtended {
 			this.unsetRemoved();
 
 			CompoundTag nbt = Objects.requireNonNull(teleportedEntity.nbtCompound());
-			if (nbt.contains(Mob.LEASH_TAG, Tag.TAG_COMPOUND) && this instanceof Leashable leashable) {
+			if (nbt.contains(Mob.LEASH_TAG) && this instanceof Leashable leashable) {
 				leashable.readLeashData(nbt);
 			}
 

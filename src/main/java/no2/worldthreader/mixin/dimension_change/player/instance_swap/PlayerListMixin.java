@@ -134,7 +134,7 @@ public abstract class PlayerListMixin implements ServerPlayerInstanceSwapper {
 
     @WrapWithCondition(
             method = "respawn(Lnet/minecraft/server/level/ServerPlayer;ZLnet/minecraft/world/entity/Entity$RemovalReason;)Lnet/minecraft/server/level/ServerPlayer;",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;moveTo(DDDFF)V")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;snapTo(DDDFF)V")
     )
     private boolean isNotSwap(ServerPlayer instance, double v, double v1, double v2, float v3, float v4, @Share("IsNotPlayerSwap") LocalBooleanRef isNotPlayerSwap) {
         return isNotPlayerSwap.get();
