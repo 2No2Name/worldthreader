@@ -1,6 +1,5 @@
 package no2.worldthreader.mixin.threading_compatibility;
 
-import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import org.spongepowered.asm.mixin.Final;
@@ -8,6 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(Sensor.class)
 public class SensorMixin {
@@ -53,51 +53,51 @@ public class SensorMixin {
         TL_ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_AND_LINE_OF_SIGHT = ThreadLocal.withInitial(() -> ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_AND_LINE_OF_SIGHT.copy());
     }
 
-    @ModifyReceiver(
-            method = "updateTargetingConditionRanges",
+    @Redirect(
+            method = "updateTargetingConditionRanges(Lnet/minecraft/world/entity/LivingEntity;)V",
             at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/ai/sensing/Sensor;TARGET_CONDITIONS:Lnet/minecraft/world/entity/ai/targeting/TargetingConditions;")
     )
-    private TargetingConditions updateThreadLocalTargetConditions(TargetingConditions receiver) {
+    private TargetingConditions updateThreadLocalTargetConditions() {
         return TL_TARGET_CONDITIONS.get();
     }
 
-    @ModifyReceiver(
-            method = "updateTargetingConditionRanges",
+    @Redirect(
+            method = "updateTargetingConditionRanges(Lnet/minecraft/world/entity/LivingEntity;)V",
             at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/ai/sensing/Sensor;TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING:Lnet/minecraft/world/entity/ai/targeting/TargetingConditions;")
     )
-    private TargetingConditions updateThreadLocalTargetConditionsIgnoreInvisibilityTesting(TargetingConditions receiver) {
+    private TargetingConditions updateThreadLocalTargetConditionsIgnoreInvisibilityTesting() {
         return TL_TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING.get();
     }
 
-    @ModifyReceiver(
-            method = "updateTargetingConditionRanges",
+    @Redirect(
+            method = "updateTargetingConditionRanges(Lnet/minecraft/world/entity/LivingEntity;)V",
             at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/ai/sensing/Sensor;ATTACK_TARGET_CONDITIONS:Lnet/minecraft/world/entity/ai/targeting/TargetingConditions;")
     )
-    private TargetingConditions updateThreadLocalAttackTargetConditions(TargetingConditions receiver) {
+    private TargetingConditions updateThreadLocalAttackTargetConditions() {
         return TL_ATTACK_TARGET_CONDITIONS.get();
     }
 
-    @ModifyReceiver(
-            method = "updateTargetingConditionRanges",
+    @Redirect(
+            method = "updateTargetingConditionRanges(Lnet/minecraft/world/entity/LivingEntity;)V",
             at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/ai/sensing/Sensor;ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING:Lnet/minecraft/world/entity/ai/targeting/TargetingConditions;")
     )
-    private TargetingConditions updateThreadLocalAttackTargetConditionsIgnoreInvisibilityTesting(TargetingConditions receiver) {
+    private TargetingConditions updateThreadLocalAttackTargetConditionsIgnoreInvisibilityTesting() {
         return TL_ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_TESTING.get();
     }
 
-    @ModifyReceiver(
-            method = "updateTargetingConditionRanges",
+    @Redirect(
+            method = "updateTargetingConditionRanges(Lnet/minecraft/world/entity/LivingEntity;)V",
             at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/ai/sensing/Sensor;ATTACK_TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT:Lnet/minecraft/world/entity/ai/targeting/TargetingConditions;")
     )
-    private TargetingConditions updateThreadLocalAttackTargetConditionsIgnoreLineOfSight(TargetingConditions receiver) {
+    private TargetingConditions updateThreadLocalAttackTargetConditionsIgnoreLineOfSight() {
         return TL_ATTACK_TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT.get();
     }
 
-    @ModifyReceiver(
-            method = "updateTargetingConditionRanges",
+    @Redirect(
+            method = "updateTargetingConditionRanges(Lnet/minecraft/world/entity/LivingEntity;)V",
             at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/ai/sensing/Sensor;ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_AND_LINE_OF_SIGHT:Lnet/minecraft/world/entity/ai/targeting/TargetingConditions;")
     )
-    private TargetingConditions updateThreadLocalAttackTargetConditionsIgnoreInvisibilityAndLineOfSight(TargetingConditions receiver) {
+    private TargetingConditions updateThreadLocalAttackTargetConditionsIgnoreInvisibilityAndLineOfSight() {
         return TL_ATTACK_TARGET_CONDITIONS_IGNORE_INVISIBILITY_AND_LINE_OF_SIGHT.get();
     }
 }
