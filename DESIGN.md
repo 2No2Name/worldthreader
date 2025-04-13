@@ -52,6 +52,7 @@ needed.
   - Crafter block scaling or locking a map in the nether or end takes exclusive world access
 - Network connections have a non-threadsafe integer counter for tracking network statistics
   - Currently still non-threadsafe in worldthreader, leading to possibly wrong packet counts being displayed
+- WardenAi.DIG_COOLDOWN_SETTER and ARMADILLO_ROLLING_OUT are not threadsafe, but should not cause any issues.
 
 ## Vanilla issues fixed
 
