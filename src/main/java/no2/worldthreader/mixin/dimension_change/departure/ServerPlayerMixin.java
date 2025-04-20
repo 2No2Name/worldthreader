@@ -60,9 +60,8 @@ public abstract class ServerPlayerMixin extends Player implements EntityExtended
 
             if (teleportTransition.asPassenger()) {
                 ((ServerWorldExtended) this.serverLevel()).worldthreader$putDepartingPassengerEntityInfo(entityInfo);
-            } else if (ServerPlayer.class == (Class<?>) this.getClass()) {
-                throw new IllegalStateException("Worldthreader: Player unexpectedly tried to teleport as passenger without being a passenger!");
             } else {
+                //Support for command blocks such as /execute in other_dimension run tp @p ~ ~ ~ and datapacks
                 //Support for carpet mod players using portals
                 ((ServerWorldExtended) teleportTransition.newLevel()).worldthreader$receiveTeleportedEntity(this.level().dimension(), entityInfo);
             }
