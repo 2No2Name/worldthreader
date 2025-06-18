@@ -1,9 +1,9 @@
-Worldthreader 2.1.3 for Minecraft 1.21.5 fixes an issue causing falling duplication using end portals not working.
+Worldthreader 2.2.0 is the first release for Minecraft 1.21.6.
 Please report any issues you encounter to the [issue tracker of worldthreader](https://github.com/2No2Name/worldthreader/issues). As worldthreader likely comes with massive mod compatibility issues, please do not report crashes and issues to other mods' issue trackers before confirming the issue without worldthreader.
 
-## Fixes:
+## Changes
 
-- Fix falling block duplication with end portals not working
+- Update to 1.21.6
 
 ## Known issues
 
