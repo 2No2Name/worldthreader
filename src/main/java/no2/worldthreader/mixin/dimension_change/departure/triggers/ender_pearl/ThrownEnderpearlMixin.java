@@ -5,15 +5,16 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.entity.projectile.ThrownEnderpearl;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
-import no2.worldthreader.common.mixin_support.interfaces.UnsafeOwnerAccess;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import no2.worldthreader.mixin.threading_compatibility.entity_owners.ProjectileMixin;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -24,32 +25,33 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import java.util.Objects;
 
 @Mixin(ThrownEnderpearl.class)
-public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements UnsafeOwnerAccess {
+public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
 
     @Unique
     private boolean hasServerPlayerAsOwner;
 
-    @Shadow
-    private long ticketTimer;
 
+    @Shadow
+    public abstract @Nullable Entity getOwner();
 
     public ThrownEnderpearlMixin(EntityType<? extends ThrowableItemProjectile> entityType, Level level) {
         super(entityType, level);
     }
 
     @Override
-    public void setCachedOwnerWrapped(Projectile theEnderPearl, Entity cachedOwner) {
-        Entity previousOwner = this.worldthreader$getCachedOwnerUnsafe();
-        super.setCachedOwnerWrapped(theEnderPearl, cachedOwner);
-        if (previousOwner == cachedOwner) {
+    public void setCachedOwnerWrapped(Projectile theEnderPearl, @Nullable EntityReference<Entity> entityReference) {
+        EntityReference<Entity> previousOwner = this.worldthreader$getCachedOwnerUnsafe();
+        super.setCachedOwnerWrapped(theEnderPearl, entityReference);
+        if (previousOwner == entityReference) {
             return;
         }
-        boolean isPlayer = cachedOwner instanceof ServerPlayer;
+        Entity newOwner = this.getOwner();
+        boolean isPlayer = newOwner instanceof ServerPlayer;
         this.hasServerPlayerAsOwner = isPlayer;
         if (isPlayer) {
-            this.ensureThreadsafeAccess(cachedOwner);
+            this.ensureThreadsafeAccess(newOwner);
             //Register the enderpearl more reliably than vanilla. Then omit redundant registering during the enderpearl tick which would require exclusive world access
-            ((ServerPlayer) cachedOwner).registerEnderPearl((ThrownEnderpearl) (Object) this);
+            ((ServerPlayer) newOwner).registerEnderPearl((ThrownEnderpearl) (Object) this);
         }
     }
 
@@ -90,10 +92,10 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements U
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isAlive()Z")
     )
     private boolean handleNullPlayer2(Entity instance, Operation<Boolean> original) {
-        if (instance == null && this.hasServerPlayerAsOwner) {
+        if (instance == null && this.hasServerPlayerAsOwner && this.owner != null) {
             WorldThreadingManager worldThreadingManager = WorldThreadingManager.get((ServerLevel) this.level());
             if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase()) {
-                return !worldThreadingManager.deadPlayers.contains(this.ownerUUID);
+                return !worldThreadingManager.deadPlayers.contains(this.owner.getUUID());
             }
         }
         return original.call(instance);
@@ -102,7 +104,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin implements U
 
     @WrapOperation(
             method = "tick",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;serverLevel()Lnet/minecraft/server/level/ServerLevel;")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;level()Lnet/minecraft/server/level/ServerLevel;")
     )
     private ServerLevel getServerLevel(ServerPlayer instance, Operation<ServerLevel> original) {
         if (instance == null) {

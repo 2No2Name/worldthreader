@@ -9,6 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PortalProcessor;
 import net.minecraft.world.level.Level;
@@ -16,6 +17,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.Portal;
 import net.minecraft.world.level.portal.TeleportTransition;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.Vec3;
 import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
@@ -24,6 +26,8 @@ import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
 import no2.worldthreader.common.thread.ThreadLocals;
 import no2.worldthreader.common.tuples.Pair;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -46,8 +50,12 @@ public abstract class EntityMixin implements EntityExtended {
 
 	@Shadow protected abstract TeleportTransition calculatePassengerTransition(TeleportTransition teleportTransition, Entity entity);
 
+	@Shadow
+	@Final
+	private static Logger LOGGER;
+
 	@WrapOperation(
-			method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
+			method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;calculatePassengerTransition(Lnet/minecraft/world/level/portal/TeleportTransition;Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/world/level/portal/TeleportTransition;")
 	)
 	private TeleportTransition getDummyPassengerTransition(Entity instance, TeleportTransition teleportTransition, Entity entity, Operation<TeleportTransition> original) {
@@ -58,10 +66,10 @@ public abstract class EntityMixin implements EntityExtended {
 	}
 
 	@WrapOperation(
-			method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
+			method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;")
 	)
-	public Entity convertPassengersToTeleportedEntityInfos(Entity passenger, TeleportTransition teleportTransition, Operation<Entity> original, @Local(argsOnly = true) ServerLevel destination, @Share("PassengerInfos") LocalRef<List<TeleportedEntityInfo>> passengerInfos) {
+	public Entity convertPassengersToTeleportedEntityInfos(Entity passenger, TeleportTransition teleportTransition, Operation<Entity> original, @Local(argsOnly = true, ordinal = 1) ServerLevel destination, @Share("PassengerInfos") LocalRef<List<TeleportedEntityInfo>> passengerInfos) {
 		if (DimensionChangeHelper.shouldConvertSelfToTeleportedEntityInfo(destination)) {
 
 			if (passengerInfos.get() == null) {
@@ -91,12 +99,12 @@ public abstract class EntityMixin implements EntityExtended {
 
 
 	@Inject(
-			method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
+			method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/Profiler;get()Lnet/minecraft/util/profiling/ProfilerFiller;"),
 			cancellable = true
 
 	)
-	private void convertSelfToTeleportedEntityInfo(ServerLevel destination, TeleportTransition teleportTransition, CallbackInfoReturnable<Entity> cir, @Share("PassengerInfos") LocalRef<List<TeleportedEntityInfo>> passengerInfos) {
+	private void convertSelfToTeleportedEntityInfo(ServerLevel source, ServerLevel destination, TeleportTransition teleportTransition, CallbackInfoReturnable<Entity> cir, @Share("PassengerInfos") LocalRef<List<TeleportedEntityInfo>> passengerInfos) {
 		if (DimensionChangeHelper.shouldConvertSelfToTeleportedEntityInfo(destination)) {
 
 			cir.setReturnValue(null);
@@ -104,7 +112,7 @@ public abstract class EntityMixin implements EntityExtended {
 
 			boolean isPassenger = teleportTransition.asPassenger();
 
-			CompoundTag entityNBT = copyFromToNBT((Entity) (Object) this);
+			CompoundTag entityNBT = restoreFromToNBT((Entity) (Object) this);
 			Direction.Axis portalAxis = null;
 			Vec3 inPortalPos = null;
 
@@ -129,20 +137,24 @@ public abstract class EntityMixin implements EntityExtended {
 
 			// [VanillaCopy] teleportCrossDimensions
 			this.removeAfterChangingDimensions();
-			this.worldthreader$onEntityDepartsFromServerWorld(destination.dimension(), this.level().dimension());
+			this.worldthreader$onEntityDepartsFromServerWorld(destination.dimension(), source.dimension());
 
 			if (isPassenger) {
-				((ServerWorldExtended) this.level()).worldthreader$putDepartingPassengerEntityInfo(entityInfo);
+				((ServerWorldExtended) source).worldthreader$putDepartingPassengerEntityInfo(entityInfo);
 			} else {
-                ((ServerWorldExtended) destination).worldthreader$receiveTeleportedEntity(this.level().dimension(), entityInfo);
+				((ServerWorldExtended) destination).worldthreader$receiveTeleportedEntity(source.dimension(), entityInfo);
             }
 		}
 	}
 
 
-	//[VanillaCopy] Entity.copyFrom(Entity)
+	//[VanillaCopy] Entity.restoreFrom(Entity)
 	@Unique
-	private static CompoundTag copyFromToNBT(Entity original) {
-        return original.saveWithoutId(new CompoundTag());
+	private static CompoundTag restoreFromToNBT(Entity entityToSave) {
+		try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(entityToSave.problemPath(), LOGGER)) {
+			TagValueOutput tagValueOutput = TagValueOutput.createWithContext(scopedCollector, entityToSave.level().registryAccess());
+			entityToSave.saveWithoutId(tagValueOutput);
+			return tagValueOutput.buildResult();
+		}
 	}
 }

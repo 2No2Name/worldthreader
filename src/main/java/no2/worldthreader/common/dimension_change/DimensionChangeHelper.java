@@ -84,7 +84,7 @@ public class DimensionChangeHelper {
             newEntity = oldEntityObject.teleport(teleportTransition);
         } else {
             //Heavily modified method, essentially split into departure and arrival
-            newEntity = oldEntityObject.teleportCrossDimension(destination, teleportTransition);
+            newEntity = oldEntityObject.teleportCrossDimension(source, destination, teleportTransition);
         }
         ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(previous);
 

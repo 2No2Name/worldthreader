@@ -57,7 +57,6 @@
     "threading_compatibility.entity_owners.ItemEntityMixin",
     "threading_compatibility.entity_owners.PrimedTntMixin",
     "threading_compatibility.entity_owners.ProjectileMixin",
-    "threading_compatibility.entity_owners.VexCopyOwnerTargetGoalMixin",
     "threading_compatibility.entity_owners.VexMixin",
     "threading_compatibility.fixes.dedicated_server_console.DedicatedServer$ConsoleHandlerThreadMixin",
     "threading_compatibility.fixes.dedicated_server_console.DedicatedServerMixin",

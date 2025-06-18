@@ -28,7 +28,7 @@ public abstract class ServerPlayerMixin {
 
 
     @Shadow
-    public abstract ServerLevel serverLevel();
+    public abstract ServerLevel level();
 
     @ModifyExpressionValue(
             method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
@@ -50,7 +50,7 @@ public abstract class ServerPlayerMixin {
         // a command block or ender pearls is grabbing an entity from another dimension.
 
         if (WorldThreadingManager.isRecoveringTeleports(teleportTransition.newLevel())) {
-            if (this.serverLevel() != teleportTransition.newLevel()) {
+            if (this.level() != teleportTransition.newLevel()) {
                 throw new IllegalStateException("Worldthreader: Failed teleport recovery in wrong dimension!");
             }
             isRecovery.set(true);
@@ -58,7 +58,7 @@ public abstract class ServerPlayerMixin {
         }
 
         if (WorldThreadingManager.isPlacingReceivedTeleports(teleportTransition.newLevel())) {
-            if (this.serverLevel() == teleportTransition.newLevel()) {
+            if (this.level() == teleportTransition.newLevel()) {
                 throw new IllegalStateException("Worldthreader: Cross dimensional arrival split must be cross-dimensional!");
             }
             isMultithreadedPassengerArrival.set(true);

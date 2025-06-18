@@ -8,6 +8,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueOutput;
 import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
 import no2.worldthreader.common.mixin_support.interfaces.EntityExtended;
@@ -30,13 +32,13 @@ public abstract class EntityMixin implements EntityExtended {
 
 
     @WrapOperation(
-            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
+            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/Entity;getPassengers()Ljava/util/List;"
             )
     )
-    private List<Entity> getPassengerOrEmpty(Entity entity, Operation<List<Entity>> original, @Local(argsOnly = true) ServerLevel destination) {
+    private List<Entity> getPassengerOrEmpty(Entity entity, Operation<List<Entity>> original, @Local(argsOnly = true, ordinal = 1) ServerLevel destination) {
         TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity != null) {
             return List.of();
@@ -46,13 +48,13 @@ public abstract class EntityMixin implements EntityExtended {
     }
 
     @WrapOperation(
-            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
+            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
             at = @At(
                     value = "INVOKE",
                     target = "Ljava/util/List;size()I", remap = false
             )
     )
-    private int getSize(List<Entity> instance, Operation<Integer> original, @Local(argsOnly = true) ServerLevel destination) {
+    private int getSize(List<Entity> instance, Operation<Integer> original, @Local(argsOnly = true, ordinal = 1) ServerLevel destination) {
         TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity != null) {
             return currentlyArrivingEntity.passengers().size();
@@ -62,13 +64,13 @@ public abstract class EntityMixin implements EntityExtended {
     }
 
     @WrapOperation(
-            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
+            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/Entity;ejectPassengers()V"
             )
     )
-    private void ejectPassengers(Entity instance, Operation<Void> original, @Local(argsOnly = true) ServerLevel destination) {
+    private void ejectPassengers(Entity instance, Operation<Void> original, @Local(argsOnly = true, ordinal = 1) ServerLevel destination) {
         TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity == null) {
             original.call(instance);
@@ -76,14 +78,13 @@ public abstract class EntityMixin implements EntityExtended {
     }
 
     @Inject(
-            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
+            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/util/profiling/ProfilerFiller;push(Ljava/lang/String;)V"
             )
     )
-    private void placePassengers(ServerLevel serverLevel, TeleportTransition teleportTransition, CallbackInfoReturnable<Entity> cir,
-                                 @Local(argsOnly = true) ServerLevel destination, @Local(ordinal = 1) List<Entity> passengersAdded) {
+    private void placePassengers(ServerLevel serverLevel, ServerLevel serverLevel2, TeleportTransition teleportTransition, CallbackInfoReturnable<Entity> cir, @Local(argsOnly = true, ordinal = 1) ServerLevel destination, @Local(ordinal = 1) List<Entity> passengersAdded) {
         TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity != null) {
             if (this != (Object) currentlyArrivingEntity.oldEntityObject()) {
@@ -109,27 +110,44 @@ public abstract class EntityMixin implements EntityExtended {
             method = "restoreFrom(Lnet/minecraft/world/entity/Entity;)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/Entity;saveWithoutId(Lnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/nbt/CompoundTag;"
+                    target = "Lnet/minecraft/world/entity/Entity;saveWithoutId(Lnet/minecraft/world/level/storage/ValueOutput;)V"
             )
     )
-    private CompoundTag restoreFromNBT(Entity oldEntity, CompoundTag compoundTag, Operation<CompoundTag> original) {
+    private void restoreFromNbt0(Entity instance, ValueOutput valueOutput, Operation<Void> original) {
         if (this.level() instanceof ServerLevel destination) {
             TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
             if (currentlyArrivingEntity != null) {
-                return Objects.requireNonNull(currentlyArrivingEntity.nbtCompound()).merge(compoundTag);
+                return;
             }
         }
-        return original.call(oldEntity, compoundTag);
+        original.call(instance, valueOutput);
     }
 
     @WrapOperation(
-            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
+            method = "restoreFrom(Lnet/minecraft/world/entity/Entity;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/storage/TagValueOutput;buildResult()Lnet/minecraft/nbt/CompoundTag;"
+            )
+    )
+    private CompoundTag restoreFromNbt1(TagValueOutput tagValueOutput, Operation<CompoundTag> original) {
+        if (this.level() instanceof ServerLevel destination) {
+            TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
+            if (currentlyArrivingEntity != null) {
+                return Objects.requireNonNull(currentlyArrivingEntity.nbtCompound()).merge(tagValueOutput.buildResult());
+            }
+        }
+        return original.call(tagValueOutput);
+    }
+
+    @WrapOperation(
+            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/Entity;removeAfterChangingDimensions()V"
             )
     )
-    private void removeOldEntity(Entity instance, Operation<Void> original, @Local(argsOnly = true) ServerLevel destination) {
+    private void removeOldEntity(Entity instance, Operation<Void> original, @Local(argsOnly = true, ordinal = 1) ServerLevel destination) {
         TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         if (currentlyArrivingEntity == null) {
             original.call(instance);

@@ -13,15 +13,16 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin {
 
+
     @Shadow
-    public abstract ServerLevel serverLevel();
+    public abstract ServerLevel level();
 
     @WrapOperation(
             method = "registerAndUpdateEnderPearlTicket",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;registerEnderPearl(Lnet/minecraft/world/entity/projectile/ThrownEnderpearl;)V")
     )
     private void handleOffthread(ServerPlayer instance, ThrownEnderpearl thrownEnderpearl, Operation<Void> original) {
-        if (WorldThreadingManager.isWrongThreadForWorld(this.serverLevel())) {
+        if (WorldThreadingManager.isWrongThreadForWorld(this.level())) {
             return; //Ender pearl already updates this on acquiring the owner
         }
         original.call(instance, thrownEnderpearl);

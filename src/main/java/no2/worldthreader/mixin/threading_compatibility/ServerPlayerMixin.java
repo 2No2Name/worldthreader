@@ -1,7 +1,6 @@
 package no2.worldthreader.mixin.threading_compatibility;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -23,9 +22,10 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Shadow @Final private Set<ThrownEnderpearl> enderPearls;
 
-    public ServerPlayerMixin(Level level, BlockPos blockPos, float f, GameProfile gameProfile) {
-        super(level, blockPos, f, gameProfile);
+    public ServerPlayerMixin(Level level, GameProfile gameProfile) {
+        super(level, gameProfile);
     }
+
 
     @Inject(method = "getEnderPearls", at = @At("HEAD"))
     private void serializeExecution(CallbackInfoReturnable<Set<ThrownEnderpearl>> cir) {

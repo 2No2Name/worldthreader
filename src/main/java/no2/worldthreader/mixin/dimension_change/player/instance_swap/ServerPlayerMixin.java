@@ -2,12 +2,9 @@ package no2.worldthreader.mixin.dimension_change.player.instance_swap;
 
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -18,7 +15,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import no2.worldthreader.common.mixin_support.interfaces.ServerPlayerInstanceSwapper;
-import no2.worldthreader.common.thread.ThreadLocals;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -34,41 +30,8 @@ public abstract class ServerPlayerMixin {
 
     @Shadow @Final public MinecraftServer server;
 
-    @Shadow public abstract ServerLevel serverLevel();
-
-    // Allow null level to be passed in ctor:
-    @WrapOperation(
-            method = "<init>", require = 2,
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getSharedSpawnPos()Lnet/minecraft/core/BlockPos;")
-    )
-    private static BlockPos handleNullWorld(ServerLevel serverLevel, Operation<BlockPos> original) {
-        if (ThreadLocals.PLAYER_SWAP_4_LEVEL.get() == serverLevel) {
-            return BlockPos.ZERO;
-        }
-        return original.call(serverLevel);
-    }
-    // Allow null level to be passed in ctor:
-    @WrapOperation(
-            method = "<init>",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getSharedSpawnAngle()F")
-    )
-    private static float handleNullWorld1(ServerLevel serverLevel, Operation<Float> original) {
-        if (ThreadLocals.PLAYER_SWAP_4_LEVEL.get() == serverLevel) {
-            return 0.0F;
-        }
-        return original.call(serverLevel);
-    }
-    // Allow null level to be passed in ctor:
-    @WrapOperation(
-            method = "<init>",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;adjustSpawnLocation(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/BlockPos;")
-    )
-    private BlockPos handleNullWorld2(ServerPlayer instance, ServerLevel serverLevel, BlockPos blockPos, Operation<BlockPos> original) {
-        if (ThreadLocals.PLAYER_SWAP_4_LEVEL.get() == serverLevel) {
-            return blockPos;
-        }
-        return original.call(instance, serverLevel, blockPos);
-    }
+    @Shadow
+    public abstract ServerLevel level();
 
     @Redirect(
             method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
@@ -97,7 +60,7 @@ public abstract class ServerPlayerMixin {
 
             throw new AssertionError("Worldthreader: Mixin placed at incorrect position in ServerPlayer.teleport!");
         }
-        if (newLevel == this.serverLevel()) {
+        if (newLevel == this.level()) {
             throw new AssertionError("Worldthreader: Ordinals of Local Capture are incorrect!");
         }
 

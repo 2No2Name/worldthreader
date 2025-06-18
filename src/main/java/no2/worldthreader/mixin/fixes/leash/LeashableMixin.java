@@ -19,7 +19,7 @@ public interface LeashableMixin {
     )
     private static <E extends Entity & Leashable> void handleTeleportedPlayer(ServerLevel serverLevel, E entity, CallbackInfo ci, @Local Leashable.LeashData leashData) {
         if (leashData.delayedLeashInfo == null && leashData.leashHolder instanceof ServerPlayer serverPlayer && serverPlayer.getRemovalReason() == Entity.RemovalReason.CHANGED_DIMENSION) {
-            WorldThreadingManager worldThreadingManager = WorldThreadingManager.get(serverPlayer.serverLevel());
+            WorldThreadingManager worldThreadingManager = WorldThreadingManager.get(serverPlayer.level());
             if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase() && !worldThreadingManager.deadPlayers.contains(serverPlayer.getUUID())) {
                 leashData.delayedLeashInfo = Either.left(serverPlayer.getUUID());
             }
@@ -31,7 +31,7 @@ public interface LeashableMixin {
     )
     private static <E extends Entity & Leashable> boolean getThreadedIsAlive(Entity instance, @Local Leashable.LeashData leashData) {
         if (instance instanceof ServerPlayer serverPlayer && serverPlayer.getRemovalReason() == Entity.RemovalReason.CHANGED_DIMENSION) {
-            WorldThreadingManager worldThreadingManager = WorldThreadingManager.get(serverPlayer.serverLevel());
+            WorldThreadingManager worldThreadingManager = WorldThreadingManager.get(serverPlayer.level());
             if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase()) {
                 return !worldThreadingManager.deadPlayers.contains(serverPlayer.getUUID());
             }
@@ -48,7 +48,7 @@ public interface LeashableMixin {
     )
     private static int skipDestroyingLeashIfTeleportedPlayer(int constant, @Local(argsOnly = true) Leashable.LeashData leashData) {
         if (leashData.delayedLeashInfo != null && leashData.leashHolder instanceof ServerPlayer serverPlayer && serverPlayer.getRemovalReason() == Entity.RemovalReason.CHANGED_DIMENSION) {
-            WorldThreadingManager worldThreadingManager = WorldThreadingManager.get(serverPlayer.serverLevel());
+            WorldThreadingManager worldThreadingManager = WorldThreadingManager.get(serverPlayer.level());
             if (worldThreadingManager != null && !worldThreadingManager.deadPlayers.contains(serverPlayer.getUUID())) {
                 return Integer.MAX_VALUE;
             }

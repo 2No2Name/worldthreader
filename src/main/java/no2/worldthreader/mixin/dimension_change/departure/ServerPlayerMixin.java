@@ -1,7 +1,6 @@
 package no2.worldthreader.mixin.dimension_change.departure;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.PortalProcessor;
@@ -24,12 +23,13 @@ import java.util.Objects;
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin extends Player implements EntityExtended {
 
-    public ServerPlayerMixin(Level level, BlockPos blockPos, float f, GameProfile gameProfile) {
-        super(level, blockPos, f, gameProfile);
+    public ServerPlayerMixin(Level level, GameProfile gameProfile) {
+        super(level, gameProfile);
     }
 
     @Shadow
-    public abstract ServerLevel serverLevel();
+    public abstract ServerLevel level();
+
 
     @Inject(
             method = "teleport(Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/server/level/ServerPlayer;",
@@ -56,10 +56,10 @@ public abstract class ServerPlayerMixin extends Player implements EntityExtended
             TeleportedEntityInfo entityInfo = new TeleportedEntityInfo(this, null, nonDummyTransition, dummyTransitionHandler, null, null, List.of());
 
             //This doesn't do anything for players for now, but for called consistency with Entity teleportation code
-            this.worldthreader$onEntityDepartsFromServerWorld(teleportTransition.newLevel().dimension(), this.serverLevel().dimension());
+            this.worldthreader$onEntityDepartsFromServerWorld(teleportTransition.newLevel().dimension(), this.level().dimension());
 
             if (teleportTransition.asPassenger()) {
-                ((ServerWorldExtended) this.serverLevel()).worldthreader$putDepartingPassengerEntityInfo(entityInfo);
+                ((ServerWorldExtended) this.level()).worldthreader$putDepartingPassengerEntityInfo(entityInfo);
             } else {
                 //Support for command blocks such as /execute in other_dimension run tp @p ~ ~ ~ and datapacks
                 //Support for carpet mod players using portals
