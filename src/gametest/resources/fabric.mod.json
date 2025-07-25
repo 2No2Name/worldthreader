@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "worldthreader-gametest",
+  "name": "Worldthreader Gametest",
+  "version": "1.0.0",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "no2.worldthreader.gametest.WorldThreaderGameTest"
+    ]
+  }
+}
+

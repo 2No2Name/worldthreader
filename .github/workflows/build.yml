@@ -20,6 +20,10 @@ jobs:
       - name: Build
         run: ./gradlew build
 
+      - name: Run GameTest Server
+        run: ./gradlew runGametestServer
+        timeout-minutes: 3
+
       - name: Upload build artifacts
         if: ${{ github.event_name == 'push' }} # Only upload artifacts on push
         uses: actions/upload-artifact@v4

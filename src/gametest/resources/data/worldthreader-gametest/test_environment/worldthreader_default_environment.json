@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:all_of",
+  "definitions": [
+    {
+      "type": "minecraft:game_rules",
+      "bool_rules": [
+        {
+          "rule": "doMobSpawning",
+          "value": false
+        }
+      ],
+      "int_rules": [
+        {
+          "rule": "randomTickSpeed",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "type": "minecraft:time_of_day",
+      "time": 12000
+    },
+    {
+      "type": "minecraft:weather",
+      "weather": "clear"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:block_based",
+  "environment": "worldthreader-gametest:worldthreader_default_environment",
+  "structure": "worldthreader-gametest:nether_portal",
+  "max_ticks": 400,
+  "setup_ticks": 10,
+  "required": true,
+  "rotation": "none",
+  "manual_only": false,
+  "max_attempts": 1,
+  "required_successes": 1,
+  "sky_access": false
+}

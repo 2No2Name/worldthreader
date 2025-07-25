@@ -31,10 +31,53 @@ dependencies {
     //Worldthreader requires fabric gamerule api v1
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
+    modImplementation fabricApi.module("fabric-gametest-api-v1", project.fabric_version)
+
+    testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
+}
+
+sourceSets {
+    gametest {
+        java.srcDir("src/gametest/java")
+        resources.srcDir("src/gametest/resources")
+
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
+}
+
+tasks.named('processGametestResources') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 loom {
     accessWidenerPath = file("src/main/resources/worldthreader.accesswidener")
+
+    runs {
+        gametestServer {
+            server()
+            name = "GameTest Server"
+            vmArg("-Dfabric-api.gametest")
+            runDir("run/gametestServer")
+            source(sourceSets.gametest)
+        }
+
+        gametestClient {
+            client()
+            name = "GameTest Client"
+            vmArg("-Dfabric-api.gametest")
+            runDir("run/gametestClient")
+            source(sourceSets.gametest)
+        }
+    }
+
+    mods {
+        register("worldthreader-gametest") {
+            sourceSet(sourceSets.gametest)
+        }
+    }
 }
 
 processResources {
