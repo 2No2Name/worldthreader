@@ -2,6 +2,7 @@ package no2.worldthreader.init;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.GameRules;
 import no2.worldthreader.WorldThreaderMod;
 import no2.worldthreader.common.thread.WorldThreadingManager;
@@ -34,6 +35,12 @@ public class ModGameRules {
 					}).build();
 		} catch (Throwable exception) {
 			WorldThreaderMod.LOGGER.error("Worldthreader: Could not register gamerules. Using default values!");
+		}
+	}
+
+	public static void syncDebugFlag(MinecraftServer server) {
+		if (DEBUG != null) {
+			WorldThreadingManager.DEBUG = server.getGameRules().getBoolean(DEBUG.getKey());
 		}
 	}
 }

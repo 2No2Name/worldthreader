@@ -19,6 +19,7 @@ public class WorldThreaderMod implements ModInitializer {
 	}
 
 	public static void initializeBeforeThreading(MinecraftServer server) {
+		ModGameRules.syncDebugFlag(server);
 		((BeforeThreadingInitialization) Blocks.CARVED_PUMPKIN).worldthreader$initBeforeThreading(server);
 		((BeforeThreadingInitialization) Blocks.END_PORTAL_FRAME).worldthreader$initBeforeThreading(server);
 		((BeforeThreadingInitialization) Blocks.WITHER_SKELETON_SKULL).worldthreader$initBeforeThreading(server);
