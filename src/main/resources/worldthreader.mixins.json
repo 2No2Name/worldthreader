@@ -60,6 +60,7 @@
     "threading_compatibility.entity_owners.VexMixin",
     "threading_compatibility.fixes.dedicated_server_console.DedicatedServer$ConsoleHandlerThreadMixin",
     "threading_compatibility.fixes.dedicated_server_console.DedicatedServerMixin",
+    "threading_compatibility.fixes.poi.ServerLevelMixin",
     "threadsafe_scoreboard.ObjectiveMixin",
     "threadsafe_scoreboard.PlayerScoresMixin",
     "threadsafe_scoreboard.ScoreboardCommandMixin",
