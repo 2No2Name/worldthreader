@@ -242,7 +242,6 @@ public class WorldThreadingManager {
 	}
 
 	private void setOwnershipOfAllThreadOwnedObjects(Thread currentThread) {
-        System.out.println("Acquiring access to all worlds on " + currentThread);
 		for (ThreadOwnedObject[] threadOwnedObjects : this.worldThreads2OwnedObjects.values()) {
 			for (ThreadOwnedObject threadOwnedObject : threadOwnedObjects) {
 				if (threadOwnedObject != null) {
@@ -250,11 +249,9 @@ public class WorldThreadingManager {
 				}
 			}
 		}
-        System.out.println("DONE: Acquiring access to all worlds on " + currentThread);
     }
 
 	private void resetOwnershipOfAllThreadOwnedObjects() {
-        System.out.println("Resetting owners of all worlds on " + Thread.currentThread());
         this.worldThreads2OwnedObjects.forEach((key, threadOwnedObjects) -> {
             for (ThreadOwnedObject threadOwnedObject : threadOwnedObjects) {
                 if (threadOwnedObject != null) {
@@ -262,7 +259,6 @@ public class WorldThreadingManager {
                 }
             }
         });
-        System.out.println("DONE: Resetting owners of all worlds on " + Thread.currentThread());
     }
 
 	private boolean areAllThreadsInBarrierOrAccessRequest() {
