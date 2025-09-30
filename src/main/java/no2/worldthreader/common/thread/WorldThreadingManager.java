@@ -165,9 +165,12 @@ public class WorldThreadingManager {
 	}
 
 	private int barrier(Phaser phaser) {
-        this.tryGiveAwayExclusiveWorldAccess();
+        boolean mustUnparkWaitingThread = this.tryGiveAwayExclusiveWorldAccess();
         int phase = phaser.getPhase();
         phaser.arrive();
+        if (mustUnparkWaitingThread) {
+            this.unparkThreadWaitingOnExclusiveWorldAccess();
+        }
 		return phaser.awaitAdvance(phase);
 	}
 
@@ -275,7 +278,7 @@ public class WorldThreadingManager {
 		return totalThreads == arrivedParties;
 	}
 
-	public void tryGiveAwayExclusiveWorldAccess() {
+    public boolean tryGiveAwayExclusiveWorldAccess() {
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
 		if (thread != null) {
 			if (thread == Thread.currentThread()) {
@@ -288,10 +291,18 @@ public class WorldThreadingManager {
 				this.threadWithExclusiveWorldAccess.set(null);
 				this.exclusiveWorldAccessLock.release();
 			} else {
-				LockSupport.unpark(thread);
+                return true; //Must unpark other thread after arriving in barrier
 			}
 		}
-	}
+        return false;
+    }
+
+    public void unparkThreadWaitingOnExclusiveWorldAccess() {
+        Thread thread = this.threadWithExclusiveWorldAccess.get();
+        if (thread != null) {
+            LockSupport.unpark(thread);
+        }
+    }
 
 	public synchronized void handleCrash(CrashReport crashReport) {
 		if (this.crashReport == null) {
