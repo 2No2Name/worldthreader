@@ -6,7 +6,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.CommonPlayerSpawnInfo;
 import net.minecraft.server.level.ServerLevel;
@@ -173,28 +172,6 @@ public abstract class PlayerListMixin implements ServerPlayerInstanceSwapper {
         if (isNotPlayerSwap.get()) {
             original.call(instance, d, e, f, g, h);
         }
-    }
-
-    @WrapOperation(
-            method = "respawn(Lnet/minecraft/server/level/ServerPlayer;ZLnet/minecraft/world/entity/Entity$RemovalReason;)Lnet/minecraft/server/level/ServerPlayer;",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getSharedSpawnPos()Lnet/minecraft/core/BlockPos;")
-    )
-    private BlockPos getSharedSpawnPosIfNotSwap(ServerLevel instance, Operation<BlockPos> original, @Share("IsNotPlayerSwap") LocalBooleanRef isNotPlayerSwap) {
-        if (isNotPlayerSwap.get()) {
-            return original.call(instance);
-        }
-        return null;
-    }
-
-    @WrapOperation(
-            method = "respawn(Lnet/minecraft/server/level/ServerPlayer;ZLnet/minecraft/world/entity/Entity$RemovalReason;)Lnet/minecraft/server/level/ServerPlayer;",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getSharedSpawnAngle()F")
-    )
-    private float getSharedSpawnAngleIfNotSwap(ServerLevel instance, Operation<Float> original, @Share("IsNotPlayerSwap") LocalBooleanRef isNotPlayerSwap) {
-        if (isNotPlayerSwap.get()) {
-            return original.call(instance);
-        }
-        return 0.0f;
     }
 
     @WrapOperation(

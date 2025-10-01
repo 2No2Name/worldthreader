@@ -23,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Mixin(ThrownEnderpearl.class)
 public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
@@ -58,15 +59,15 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
     @Unique
     private void ensureThreadsafeAccess(Entity cachedOwner) {
         if (WorldThreadingManager.hasToAcquireExclusiveAccessBeforeAccessing((ServerLevel) cachedOwner.level())) {
-            Objects.requireNonNull(this.getServer()).getAllLevels();
+            Objects.requireNonNull(this.level().getServer()).getAllLevels();
         }
     }
 
 
     @Redirect(
-            method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/ThrownEnderpearl;getOwner()Lnet/minecraft/world/entity/Entity;")
+            method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/ThrownEnderpearl;findOwnerIncludingDeadPlayer(Lnet/minecraft/server/level/ServerLevel;Ljava/util/UUID;)Lnet/minecraft/world/entity/Entity;")
     )
-    private Entity avoidGettingOwner(ThrownEnderpearl instance) {
+    private Entity avoidGettingOwner(ServerLevel serverLevel, UUID uUID) {
         if (this.level() instanceof ServerLevel level && ((MinecraftServerExtended) level.getServer()).worldthreader$isTickMultithreaded()) {
             return null;
         }
@@ -95,7 +96,21 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
         if (instance == null && this.hasServerPlayerAsOwner && this.owner != null) {
             WorldThreadingManager worldThreadingManager = WorldThreadingManager.get((ServerLevel) this.level());
             if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase()) {
-                return !worldThreadingManager.deadPlayers.contains(this.owner.getUUID());
+                return worldThreadingManager.wasAlive(this.owner.getUUID());
+            }
+        }
+        return original.call(instance);
+    }
+
+    @WrapOperation(
+            method = "tick",
+            at = @At(value = "FIELD", target = "Lnet/minecraft/server/level/ServerPlayer;wonGame:Z")
+    )
+    private boolean handleNullPlayer2(ServerPlayer instance, Operation<Boolean> original) {
+        if (instance == null && this.hasServerPlayerAsOwner && this.owner != null) {
+            WorldThreadingManager worldThreadingManager = WorldThreadingManager.get((ServerLevel) this.level());
+            if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase()) {
+                return worldThreadingManager.wonGame(this.owner.getUUID());
             }
         }
         return original.call(instance);

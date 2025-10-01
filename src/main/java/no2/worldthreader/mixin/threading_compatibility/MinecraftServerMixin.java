@@ -8,6 +8,7 @@ import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.util.profiling.ProfileResults;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.LevelData;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -70,6 +71,13 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
             method = "setDifficulty", at = @At("HEAD")
     )
     private void ensureSafe2(Difficulty difficulty, boolean bl, CallbackInfo ci) {
+        this.getAllLevels();
+    }
+
+    @Inject(
+            method = "setRespawnData", at = @At("HEAD")
+    )
+    private void ensureSafe2(LevelData.RespawnData respawnData, CallbackInfo ci) {
         this.getAllLevels();
     }
 }

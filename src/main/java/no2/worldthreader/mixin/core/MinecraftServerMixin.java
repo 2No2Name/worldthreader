@@ -59,7 +59,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 			return this.getAllLevels();
 		}
 
-		this.worldThreadingManager.updateDeadPlayerSet(this.getPlayerList().getPlayers());
+        this.worldThreadingManager.updateThreadsafePlayerInfos(this.getPlayerList().getPlayers());
 
 		//Start of tick barrier
 		this.worldThreadingManager.setMultiThreadedPhase(true);

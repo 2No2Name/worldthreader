@@ -1,11 +1,11 @@
 package no2.worldthreader.mixin.exclusive_world_access;
 
-import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
-import no2.worldthreader.common.thread.WorldThreadingManager;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
+import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,7 +32,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
     private void acquireSingleThreadedWorldAccess() {
         if (this.worldthreader$isTickMultithreaded()) {
             WorldThreadingManager worldThreadingManager = Objects.requireNonNull(this.worldthreader$getThreadingManager());
-            worldThreadingManager.waitForExclusiveWorldAccess();
+            worldThreadingManager.waitForExclusiveWorldAccess(false);
         }
     }
 

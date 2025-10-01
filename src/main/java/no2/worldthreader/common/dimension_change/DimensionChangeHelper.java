@@ -109,7 +109,7 @@ public class DimensionChangeHelper {
         ((EntityExtended) entity).worldthreader$restoreEntity(entityInfo);
 
         for (Entity passenger : passengers) {
-            passenger.startRiding(entity, true);
+            passenger.startRiding(entity, true, false);
         }
         return entity;
     }

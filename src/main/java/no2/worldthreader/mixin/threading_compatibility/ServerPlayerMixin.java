@@ -1,6 +1,7 @@
 package no2.worldthreader.mixin.threading_compatibility;
 
 import com.mojang.authlib.GameProfile;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -22,6 +23,9 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Shadow @Final private Set<ThrownEnderpearl> enderPearls;
 
+    @Shadow
+    public abstract Level level();
+
     public ServerPlayerMixin(Level level, GameProfile gameProfile) {
         super(level, gameProfile);
     }
@@ -29,11 +33,12 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Inject(method = "getEnderPearls", at = @At("HEAD"))
     private void serializeExecution(CallbackInfoReturnable<Set<ThrownEnderpearl>> cir) {
-        if (this.getServer() != null && ((MinecraftServerExtended) this.getServer()).worldthreader$isTickMultithreaded()) {
+        MinecraftServer server = this.level().getServer();
+        if (server != null && ((MinecraftServerExtended) server).worldthreader$isTickMultithreaded()) {
             for (var pearl : this.enderPearls) {
                 if (WorldThreadingManager.isAccessibleForOtherThread((ServerLevel) pearl.level())) {
                     //Fallback to serial execution
-                    this.getServer().getAllLevels();
+                    server.getAllLevels();
                     return;
                 }
             }

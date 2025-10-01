@@ -1,6 +1,6 @@
 package no2.worldthreader.common.thread;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import net.minecraft.CrashReport;
@@ -45,8 +45,8 @@ public class WorldThreadingManager {
 	private boolean isMultiThreadedPhase = false;
 	private CrashReport crashReport;
 
+    public final Object2ReferenceOpenHashMap<UUID, PlayerInfo> lastPlayerInfos = new Object2ReferenceOpenHashMap<>();
 
-	public final ObjectOpenHashSet<UUID> deadPlayers = new ObjectOpenHashSet<>();
 
 
 	public WorldThreadingManager(MinecraftServer server) {
@@ -78,7 +78,7 @@ public class WorldThreadingManager {
 	public static void ensureExclusiveScoreboardAccess(MinecraftServer server) {
 		WorldThreadingManager worldThreadingManager = ((MinecraftServerExtended) server).worldthreader$getThreadingManager();
 		if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase()) {
-            worldThreadingManager.waitForExclusiveWorldAccess();
+            worldThreadingManager.waitForExclusiveWorldAccess(false);
         }
 	}
 
@@ -191,7 +191,7 @@ public class WorldThreadingManager {
 	 * Assumptions:
 	 * After each barrier the threads will no longer access the other worlds until this function is called again.
 	 */
-	public void waitForExclusiveWorldAccess() {
+    public void waitForExclusiveWorldAccess(boolean noDebug) {
 		Thread currentThread = Thread.currentThread();
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
 
@@ -332,12 +332,33 @@ public class WorldThreadingManager {
 		}
 	}
 
-	public void updateDeadPlayerSet(Collection<ServerPlayer> players) {
-		this.deadPlayers.clear();
+    public void updateThreadsafePlayerInfos(Collection<ServerPlayer> players) {
+        this.lastPlayerInfos.clear();
 		for (ServerPlayer player : players) {
-			if (player.isDeadOrDying()) {
-				this.deadPlayers.add(player.getUUID());
-			}
-		}
-	}
+            this.lastPlayerInfos.put(player.getUUID(), new PlayerInfo(player));
+        }
+    }
+
+    public record PlayerInfo(boolean dead, boolean removed, boolean wonGame) {
+        public PlayerInfo(ServerPlayer player) {
+            this(player.isDeadOrDying(), player.isRemoved(), player.wonGame);
+        }
+    }
+
+    public boolean wasAlive(UUID uuid) {
+        PlayerInfo playerInfo = this.lastPlayerInfos.get(uuid);
+        return playerInfo == null || !playerInfo.dead() && !playerInfo.removed();
+    }
+
+    public boolean wasDead(UUID uuid) {
+        PlayerInfo playerInfo = this.lastPlayerInfos.get(uuid);
+        return playerInfo != null && playerInfo.dead();
+    }
+
+
+    public boolean wonGame(UUID uuid) {
+        PlayerInfo playerInfo = this.lastPlayerInfos.get(uuid);
+        return playerInfo != null && playerInfo.wonGame();
+    }
+
 }
