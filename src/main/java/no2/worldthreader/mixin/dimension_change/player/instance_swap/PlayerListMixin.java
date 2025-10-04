@@ -63,25 +63,25 @@ public abstract class PlayerListMixin implements ServerPlayerInstanceSwapper {
         return newPlayer;
     }
 
+    @WrapOperation(
+            method = "respawn(Lnet/minecraft/server/level/ServerPlayer;ZLnet/minecraft/world/entity/Entity$RemovalReason;)Lnet/minecraft/server/level/ServerPlayer;",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;findRespawnPositionAndUseSpawnBlock(ZLnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;")
+    )
+    private TeleportTransition initIsNotSwapAndFindRespawnPositionAndUseSpawnBlockIfNot(ServerPlayer instance, boolean bl, TeleportTransition.PostTeleportTransition postTeleportTransition, Operation<TeleportTransition> original, @Local(argsOnly = true) Entity.RemovalReason removalReason, @Share("IsNotPlayerSwap") LocalBooleanRef isNotPlayerSwap) {
+        boolean shouldExecuteAll = removalReason != null || ThreadLocals.PLAYER_SWAP_4_LEVEL.get() == null;
+        isNotPlayerSwap.set(shouldExecuteAll);
+        if (shouldExecuteAll) {
+            return original.call(instance, bl, postTeleportTransition);
+        }
+        return null;
+    }
+
     @WrapWithCondition(
             method = "respawn(Lnet/minecraft/server/level/ServerPlayer;ZLnet/minecraft/world/entity/Entity$RemovalReason;)Lnet/minecraft/server/level/ServerPlayer;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;removePlayerImmediately(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/world/entity/Entity$RemovalReason;)V")
     )
     private boolean isNotSwap(ServerLevel instance, ServerPlayer serverPlayer, Entity.RemovalReason removalReason, @Share("IsNotPlayerSwap") LocalBooleanRef isNotPlayerSwap) {
-        boolean shouldExecuteAll = removalReason != null || ThreadLocals.PLAYER_SWAP_4_LEVEL.get() == null;
-        isNotPlayerSwap.set(shouldExecuteAll);
-        return shouldExecuteAll;
-    }
-
-    @WrapOperation(
-            method = "respawn(Lnet/minecraft/server/level/ServerPlayer;ZLnet/minecraft/world/entity/Entity$RemovalReason;)Lnet/minecraft/server/level/ServerPlayer;",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;findRespawnPositionAndUseSpawnBlock(ZLnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;")
-    )
-    private TeleportTransition findRespawnPositionAndUseSpawnBlockIfNotSwap(ServerPlayer instance, boolean bl, TeleportTransition.PostTeleportTransition postTeleportTransition, Operation<TeleportTransition> original, @Share("IsNotPlayerSwap") LocalBooleanRef isNotPlayerSwap) {
-        if (isNotPlayerSwap.get()) {
-            return original.call(instance, bl, postTeleportTransition);
-        }
-        return null;
+        return isNotPlayerSwap.get();
     }
 
     @WrapOperation(
