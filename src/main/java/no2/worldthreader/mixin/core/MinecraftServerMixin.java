@@ -33,8 +33,20 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 	@Unique
 	private WorldThreadingManager worldThreadingManager;
 
-	@Unique
-	private void replaceWorldThreadingManager() {
+
+    @Override
+    public void worldthreader$onLevelAddedOrRemoved() {
+        if (this.worldThreadingManager != null) {
+            if (this.worldthreader$isTickMultithreaded()) {
+                throw new IllegalStateException("Level count modified during parallel level tick!");
+            }
+            this.worldThreadingManager.terminate();
+            this.worldThreadingManager = null;
+        }
+    }
+
+    @Unique
+    private void replaceWorldThreadingManager() {
 		if (this.worldThreadingManager != null) {
 			this.worldThreadingManager.terminate();
 			this.worldThreadingManager = null;
