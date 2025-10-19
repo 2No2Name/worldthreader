@@ -5,8 +5,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Unique;
 
 public interface MinecraftServerExtended {
+    @Unique
+    void worldthreader$onLevelAddedOrRemoved();
+
     boolean worldthreader$isTickMultithreaded();
 
     @Nullable

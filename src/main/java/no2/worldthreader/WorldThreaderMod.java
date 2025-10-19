@@ -1,9 +1,11 @@
 package no2.worldthreader;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.Blocks;
 import no2.worldthreader.common.mixin_support.interfaces.BeforeThreadingInitialization;
+import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.init.ModGameRules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,9 @@ public class WorldThreaderMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModGameRules.registerGameRules();
+
+        ServerWorldEvents.LOAD.register((server, world) -> ((MinecraftServerExtended) server).worldthreader$onLevelAddedOrRemoved());
+        ServerWorldEvents.UNLOAD.register((server, world) -> ((MinecraftServerExtended) server).worldthreader$onLevelAddedOrRemoved());
 	}
 
 	public static void initializeBeforeThreading(MinecraftServer server) {
