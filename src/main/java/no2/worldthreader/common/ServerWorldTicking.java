@@ -6,7 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.level.storage.DerivedLevelData;
+import net.minecraft.world.level.storage.PrimaryLevelData;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
 import no2.worldthreader.common.thread.ThreadHelper;
 import no2.worldthreader.common.thread.ThreadLocals;
@@ -18,7 +18,7 @@ import java.util.function.BooleanSupplier;
 public class ServerWorldTicking {
 
     public static boolean isMainWorld(ServerLevel world) {
-        return !(world.getLevelData() instanceof DerivedLevelData);
+        return world.getLevelData() instanceof PrimaryLevelData;
     }
 
 
