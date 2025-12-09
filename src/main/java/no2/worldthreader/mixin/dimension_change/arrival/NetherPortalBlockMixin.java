@@ -65,7 +65,7 @@ public abstract class NetherPortalBlockMixin implements Portal {
      * On arrival the precalculated values are used instead of accessing the source world.
      */
     @Redirect(
-            method = "getDimensionTransitionFromExit(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/BlockUtil$FoundRectangle;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;",
+            method = "getDimensionTransitionFromExit(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/BlockUtil$FoundRectangle;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;")
     )
     private static BlockState avoidAccessingWrongWorld2(Level departureWorld, BlockPos pos) {
@@ -77,8 +77,8 @@ public abstract class NetherPortalBlockMixin implements Portal {
     }
 
     @ModifyArg(
-            method = "getDimensionTransitionFromExit(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/BlockUtil$FoundRectangle;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/NetherPortalBlock;createDimensionTransition(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/BlockUtil$FoundRectangle;Lnet/minecraft/core/Direction$Axis;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;")
+            method = "getDimensionTransitionFromExit(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/BlockUtil$FoundRectangle;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/NetherPortalBlock;createDimensionTransition(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/util/BlockUtil$FoundRectangle;Lnet/minecraft/core/Direction$Axis;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;")
     )
     private static Direction.Axis restorePortalAxis2(Direction.Axis portalAxis, @Local(argsOnly = true) ServerLevel targetWorld) {
         TeleportedEntityInfo currentlyArrivingEntity = targetWorld == null ? null : ((ServerWorldExtended) targetWorld).worldthreader$arrivingEntityInfo();
@@ -89,8 +89,8 @@ public abstract class NetherPortalBlockMixin implements Portal {
     }
 
     @ModifyArg(
-            method = "getDimensionTransitionFromExit(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/BlockUtil$FoundRectangle;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/NetherPortalBlock;createDimensionTransition(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/BlockUtil$FoundRectangle;Lnet/minecraft/core/Direction$Axis;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;")
+            method = "getDimensionTransitionFromExit(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/BlockUtil$FoundRectangle;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/NetherPortalBlock;createDimensionTransition(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/util/BlockUtil$FoundRectangle;Lnet/minecraft/core/Direction$Axis;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/portal/TeleportTransition$PostTeleportTransition;)Lnet/minecraft/world/level/portal/TeleportTransition;")
     )
     private static Vec3 restoreInPortalPos(Vec3 inPortalPos, @Local(argsOnly = true) ServerLevel targetWorld) {
         TeleportedEntityInfo currentlyArrivingEntity = targetWorld == null ? null : ((ServerWorldExtended) targetWorld).worldthreader$arrivingEntityInfo();

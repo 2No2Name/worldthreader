@@ -8,7 +8,7 @@ import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.common.mixin_support.interfaces.UnsafeOwnerAccess;
 import no2.worldthreader.common.thread.WorldThreadingManager;

@@ -53,7 +53,7 @@ public class ServerWorldTicking {
         try {
             // [VanillaCopy] MinecraftServer#tickChildren
             ProfilerFiller profilerFiller = Profiler.get();
-            profilerFiller.push(() -> serverLevel + " " + serverLevel.dimension().location());
+            profilerFiller.push(() -> serverLevel + " " + serverLevel.dimension().identifier());
             if (server.getTickCount() % 20 == 0) {
                 profilerFiller.push("timeSync");
                 server.synchronizeTime(serverLevel);

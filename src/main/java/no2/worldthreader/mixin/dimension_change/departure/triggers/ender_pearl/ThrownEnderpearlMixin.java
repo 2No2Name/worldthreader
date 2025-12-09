@@ -8,8 +8,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
-import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.thread.WorldThreadingManager;
@@ -65,7 +65,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
 
 
     @Redirect(
-            method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/ThrownEnderpearl;findOwnerIncludingDeadPlayer(Lnet/minecraft/server/level/ServerLevel;Ljava/util/UUID;)Lnet/minecraft/world/entity/Entity;")
+            method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/throwableitemprojectile/ThrownEnderpearl;findOwnerIncludingDeadPlayer(Lnet/minecraft/server/level/ServerLevel;Ljava/util/UUID;)Lnet/minecraft/world/entity/Entity;")
     )
     private Entity avoidGettingOwner(ServerLevel serverLevel, UUID uUID) {
         if (this.level() instanceof ServerLevel level && ((MinecraftServerExtended) level.getServer()).worldthreader$isTickMultithreaded()) {
@@ -130,7 +130,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
 
     @WrapOperation(
             method = "tick",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;registerAndUpdateEnderPearlTicket(Lnet/minecraft/world/entity/projectile/ThrownEnderpearl;)J")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;registerAndUpdateEnderPearlTicket(Lnet/minecraft/world/entity/projectile/throwableitemprojectile/ThrownEnderpearl;)J")
     )
     private long registerAndUpdate(ServerPlayer instance, ThrownEnderpearl thrownEnderpearl, Operation<Long> original) {
         if (instance == null) {

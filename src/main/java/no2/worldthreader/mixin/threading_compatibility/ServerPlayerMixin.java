@@ -5,7 +5,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.thread.WorldThreadingManager;

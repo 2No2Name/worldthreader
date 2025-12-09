@@ -1,9 +1,9 @@
 import me.modmuss50.mpp.ReleaseType
 
 plugins {
-    id 'fabric-loom' version '1.11.8'
+    id 'fabric-loom' version '1.14-SNAPSHOT'
     id 'maven-publish'
-    id "me.modmuss50.mod-publish-plugin" version "0.8.3"
+    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
 version = project.mod_version

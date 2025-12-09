@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,7 +19,7 @@ public abstract class ServerPlayerMixin {
 
     @WrapOperation(
             method = "registerAndUpdateEnderPearlTicket",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;registerEnderPearl(Lnet/minecraft/world/entity/projectile/ThrownEnderpearl;)V")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;registerEnderPearl(Lnet/minecraft/world/entity/projectile/throwableitemprojectile/ThrownEnderpearl;)V")
     )
     private void handleOffthread(ServerPlayer instance, ThrownEnderpearl thrownEnderpearl, Operation<Void> original) {
         if (WorldThreadingManager.isWrongThreadForWorld(this.level())) {

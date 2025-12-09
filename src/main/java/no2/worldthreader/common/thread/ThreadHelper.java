@@ -1,7 +1,7 @@
 package no2.worldthreader.common.thread;
 
-import no2.worldthreader.WorldThreaderMod;
 import net.minecraft.server.level.ServerLevel;
+import no2.worldthreader.WorldThreaderMod;
 
 public class ThreadHelper {
 
@@ -26,6 +26,6 @@ public class ThreadHelper {
     }
 
     public static void setWorldThreadName(Thread thread, ServerLevel world) {
-        thread.setName(WorldThreaderMod.MOD_ID + "_" + world.dimension().location());
+        thread.setName(WorldThreaderMod.MOD_ID + "_" + world.dimension().identifier());
     }
 }

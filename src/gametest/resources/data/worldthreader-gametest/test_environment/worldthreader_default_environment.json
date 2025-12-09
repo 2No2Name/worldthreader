@@ -3,18 +3,10 @@
   "definitions": [
     {
       "type": "minecraft:game_rules",
-      "bool_rules": [
-        {
-          "rule": "doMobSpawning",
-          "value": false
-        }
-      ],
-      "int_rules": [
-        {
-          "rule": "randomTickSpeed",
-          "value": 3
-        }
-      ]
+      "rules": {
+        "spawn_mobs": false,
+        "random_tick_speed": 3
+      }
     },
     {
       "type": "minecraft:time_of_day",

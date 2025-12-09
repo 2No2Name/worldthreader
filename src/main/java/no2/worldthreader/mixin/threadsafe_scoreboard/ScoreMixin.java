@@ -5,14 +5,12 @@ import net.minecraft.network.chat.numbers.NumberFormat;
 import net.minecraft.world.scores.Score;
 import no2.worldthreader.common.scoreboard.AtomicArithmeticScore;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,7 +34,7 @@ public abstract class ScoreMixin implements AtomicArithmeticScore {
 
 
     @Inject(
-            method = {"<init>(IZLjava/util/Optional;Ljava/util/Optional;)V", "<init>()V"},
+            method = {"<init>(Lnet/minecraft/world/scores/Score$Packed;)V", "<init>()V"},
             at = @At("RETURN")
     )
     private void init(CallbackInfo ci) {
@@ -127,19 +125,5 @@ public abstract class ScoreMixin implements AtomicArithmeticScore {
     @Overwrite
     public void numberFormat(NumberFormat numberFormat) {
         this.atomicNumberFormat.set(numberFormat);
-    }
-
-
-    @Redirect(
-            method = "method_67452", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;display:Lnet/minecraft/network/chat/Component;", opcode = Opcodes.GETFIELD)
-    )
-    private static Component getAtomicDisplay(Score instance) {
-        return instance.display();
-    }
-    @Redirect(
-            method = "method_67451", at = @At(value = "FIELD", target = "Lnet/minecraft/world/scores/Score;numberFormat:Lnet/minecraft/network/chat/numbers/NumberFormat;", opcode = Opcodes.GETFIELD)
-    )
-    private static NumberFormat getAtomicNumberFormat(Score instance) {
-        return instance.numberFormat();
     }
 }
