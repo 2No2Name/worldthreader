@@ -67,6 +67,8 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 			this.replaceWorldThreadingManager();
 		}
 
+        ModGameRules.syncDebugFlag((MinecraftServer) (Object) this);
+
 		if (this.worldThreadingManager == null) {
 			return this.getAllLevels();
 		}
