@@ -91,7 +91,7 @@ public class ServerWorldTicking {
     private static void delegateCrash(Throwable throwable, String title, ServerLevel serverLevel, WorldThreadingManager worldThreadingManager) {
         String serverLevelOwner = ((ThreadOwnedObject) serverLevel).worldthreader$getOwningThread().getName();
         String chunkCacheOwner = ((ThreadOwnedObject) serverLevel.getChunkSource()).worldthreader$getOwningThread().getName();
-        worldThreadingManager.tryGiveAwayExclusiveWorldAccess(); //If the exception was thrown while this thread held exclusive access, it must be returned.
+        worldThreadingManager.tryGiveAwayExclusiveWorldAccess();
 
         CrashReport crashReport = CrashReport.forThrowable(throwable, title);
         serverLevel.fillReportDetails(crashReport);
