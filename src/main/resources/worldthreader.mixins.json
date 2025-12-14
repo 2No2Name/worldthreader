@@ -4,6 +4,9 @@
   "package": "no2.worldthreader.mixin",
   "compatibilityLevel": "JAVA_21",
   "plugin": "no2.worldthreader.WorldThreaderMixinPlugin",
+  "mixinextras": {
+    "minVersion": "0.5.0"
+  },
   "mixins": [
     "core.MinecraftServerMixin",
     "core.ServerLevelMixin",
@@ -32,6 +35,11 @@
     "entity_id_wireless_redstone_fix.EntityMixin",
     "entity_id_wireless_redstone_fix.ServerWorldMixin",
     "exclusive_world_access.MinecraftServerMixin",
+    "fixes.entity_reference.EntityLookupMixin",
+    "fixes.entity_reference.EntityReferenceMixin",
+    "fixes.entity_reference.PersistentEntitySectionManagerAccessor",
+    "fixes.entity_reference.ServerLevelAccessor",
+    "fixes.last_hurt_by_mob.LivingEntityMixin",
     "fixes.leash.LeashableMixin",
     "thread_ownership.ServerChunkCacheMixin",
     "thread_ownership.WorldMixin",

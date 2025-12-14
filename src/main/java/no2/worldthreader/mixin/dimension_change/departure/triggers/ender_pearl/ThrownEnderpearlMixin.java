@@ -96,7 +96,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
         if (instance == null && this.hasServerPlayerAsOwner && this.owner != null) {
             WorldThreadingManager worldThreadingManager = WorldThreadingManager.get((ServerLevel) this.level());
             if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase()) {
-                return worldThreadingManager.wasAlive(this.owner.getUUID());
+                return worldThreadingManager.wasPlayerAlive(this.owner.getUUID(), true);
             }
         }
         return original.call(instance);
@@ -110,7 +110,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
         if (instance == null && this.hasServerPlayerAsOwner && this.owner != null) {
             WorldThreadingManager worldThreadingManager = WorldThreadingManager.get((ServerLevel) this.level());
             if (worldThreadingManager != null && worldThreadingManager.isMultiThreadedPhase()) {
-                return worldThreadingManager.wonGame(this.owner.getUUID());
+                return worldThreadingManager.wasPlayerWonGame(this.owner.getUUID());
             }
         }
         return original.call(instance);
