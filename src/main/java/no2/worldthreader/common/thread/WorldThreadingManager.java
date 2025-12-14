@@ -165,13 +165,11 @@ public class WorldThreadingManager {
 	}
 
 	private int barrier(Phaser phaser) {
-        boolean mustUnparkWaitingThread = this.tryGiveAwayExclusiveWorldAccess();
+        this.tryGiveAwayExclusiveWorldAccess();
         int phase = phaser.getPhase();
         phaser.arrive();
-        if (mustUnparkWaitingThread) {
-            this.unparkThreadWaitingOnExclusiveWorldAccess();
-        }
-		return phaser.awaitAdvance(phase);
+        this.unparkThreadWaitingOnExclusiveWorldAccess();
+        return phaser.awaitAdvance(phase);
 	}
 
 	public boolean hasExclusiveWorldAccess() {
@@ -218,6 +216,7 @@ public class WorldThreadingManager {
 		this.threadsRequestingExclusiveWorldAccess.getAndIncrement();
 		thread = this.threadWithExclusiveWorldAccess.get();
 		if (thread != null) {
+            //If another thread is waiting for exclusive access already, unpark it to allow it to use this thread's level
 			LockSupport.unpark(thread);
 		}
 
@@ -278,7 +277,7 @@ public class WorldThreadingManager {
 		return totalThreads == arrivedParties;
 	}
 
-    public boolean tryGiveAwayExclusiveWorldAccess() {
+    public void tryGiveAwayExclusiveWorldAccess() {
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
 		if (thread != null) {
 			if (thread == Thread.currentThread()) {
@@ -290,11 +289,8 @@ public class WorldThreadingManager {
 				}
 				this.threadWithExclusiveWorldAccess.set(null);
 				this.exclusiveWorldAccessLock.release();
-			} else {
-                return true; //Must unpark other thread after arriving in barrier
 			}
 		}
-        return false;
     }
 
     public void unparkThreadWaitingOnExclusiveWorldAccess() {
@@ -308,7 +304,8 @@ public class WorldThreadingManager {
 		if (this.crashReport == null) {
 			this.crashReport = crashReport;
 			this.tickBarrier.forceTermination(); //Destroy the tick barrier to prevent all threads from entering a new tick and to wake up the main thread.
-			//The main thread will call throwCrashReportIfPresent()
+            this.unparkThreadWaitingOnExclusiveWorldAccess();
+            //The main thread will call throwCrashReportIfPresent()
 		} else {
 			this.crashReport.addCategory("Crashing while already crashing").setDetail("Crash Report", crashReport);
 		}
