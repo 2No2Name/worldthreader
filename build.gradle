@@ -216,3 +216,16 @@ tasks.register("printModVersion") {
         println project.mod_version
     }
 }
+
+// Mixin hotswap, debug flags
+afterEvaluate {
+    loom.runs.configureEach {
+        // https://fabricmc.net/wiki/tutorial:mixin_hotswaps
+        def mixinJar = configurations.compileClasspath.files.find { it.name.contains("sponge-mixin") }
+        if (mixinJar != null) {
+            vmArg("-javaagent:${mixinJar}")
+        }
+        vmArg("-Dmixin.debug.export=true")
+        vmArg("-Dmixin.debug=true")
+    }
+}
