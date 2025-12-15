@@ -23,11 +23,11 @@ installed on the client.
 
 To use the gamerules, you need the Fabric API. Without the Fabric API, Worldthreader will use the default settings.
 
-- `/gamerule worldthreader_Active <true/false>` (default true) enables/disables the mod
-- `/gamerule worldthreader_AdditionalEntityTickAfterTeleport <true/false>` (default false) enables/disables ticking
+- `/gamerule worldthreader:active <true/false>` (default true) enables/disables the mod
+- `/gamerule worldthreader:additional_entity_tick_after_teleport <true/false>` (default false) enables/disables ticking
   entities immediately after teleporting from the main overworld to the nether or end to simulate the timings of vanilla
   portal use
-- `/gamerule worldthreader_Debug <true/false>` (default false) enables/disables debug logging and illegal world access
+- `/gamerule worldthreader:debug <true/false>` (default false) enables/disables debug logging and illegal world access
   detection. Use this to find issues, both correctness and performance related. If nothing shows up in the logs, that
   only means that no issues were found, not that none can exist.
 
@@ -40,7 +40,7 @@ To use the gamerules, you need the Fabric API. Without the Fabric API, Worldthre
 Worldthreader aims to conserve vanilla-parity in most points.
 
 Behavior based on the timing of entities going through portals might be delayed by a game tick when the entity is
-leaving the overworld. However, `/gamerule worldthreader_AdditionalEntityTickAfterTeleport` ticks entities that are not
+leaving the overworld. However, `/gamerule worldthreader:additional_entity_tick_after_teleport` ticks entities that are not
 teleporting to the overworld once after being placed in the world. This should allow them to catch up on the tick they
 missed. However, this happens at the end of the tick, meaning that no other mobs or pistons were able to push or damage
 the entity in that tick because it hasn't been there yet.
@@ -48,6 +48,10 @@ the entity in that tick because it hasn't been there yet.
 Interdimensional commands in command blocks or shared scoreboard accesses from different dimensions can be observed to
 be in a different order since there are no interdimensional ordering guarantees within a single game tick for
 interdimensional commands. The order of commands within one dimension remains the same as in vanilla.
+
+Interdimensional entity references will use exclusive dimension access if needed. To avoid this happening in every tick,
+interdimensional entity references will not find entities that were not present in other dimensions at the start of the
+current tick.
 
 ##### Can my dimensions get de-synchronized?
 
