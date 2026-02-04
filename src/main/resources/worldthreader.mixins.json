@@ -45,6 +45,7 @@
     "thread_ownership.WorldMixin",
     "threading_compatibility.EntityReferenceMixin",
     "threading_compatibility.EntitySelectorMixin",
+    "threading_compatibility.FishingRodItemMixin",
     "threading_compatibility.GameruleCommandMixin",
     "threading_compatibility.MinecraftServerMixin",
     "threading_compatibility.PlayerListMixin",

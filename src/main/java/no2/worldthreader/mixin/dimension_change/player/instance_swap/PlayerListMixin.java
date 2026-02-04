@@ -55,6 +55,10 @@ public abstract class PlayerListMixin implements ServerPlayerInstanceSwapper {
                 // access, it doesn't make a difference (unless other mods directly use the field)
             }
         }
+        if (newPlayer.fishing == null && previousPlayer.fishing != null) {
+            newPlayer.fishing = previousPlayer.fishing;
+            //Thread safety of the field implemented in FishingRodItemMixin
+        }
 
         //Others fields like this might be relevant but hard to track down, not doing it for now
 //        newPlayer.startingToFallPosition = previousPlayer.startingToFallPosition;
