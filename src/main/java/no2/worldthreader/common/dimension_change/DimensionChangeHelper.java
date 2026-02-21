@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class DimensionChangeHelper {
 
@@ -37,7 +38,7 @@ public class DimensionChangeHelper {
         return new TeleportTransition(destination, null, null, 0.0f, 0.0f, false, false, null, null);
     }
 
-    public static void nonPassengerArriveInWorld(TeleportedEntityInfo teleportedEntityInfo, Entity oldEntityObject, ServerLevel destination, ServerLevel source) {
+    public static void nonPassengerArriveInWorld(TeleportedEntityInfo teleportedEntityInfo, Entity oldEntityObject, ServerLevel destination, ServerLevel source, Consumer<Entity> entityAdditionalTickConsumer) {
 
         TeleportedEntityInfo previous = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         TeleportTransition teleportTransition;
@@ -68,8 +69,7 @@ public class DimensionChangeHelper {
         Entity newEntity = arriveIntoWorld(teleportedEntityInfo, oldEntityObject, destination, source, teleportTransition);
 
         if (ServerWorldTicking.isMainWorld(destination) && destination.getGameRules().get(ModGameRules.TELEPORTED_ENTITY_ADDITIONAL_TICK)) {
-            newEntity.tick();
-            //Small todo: maybe use a collection and then tick all of the ones in the collection, avoids issue where the others didn't arrive yet and thus no interaction takes place (would only avoid this for the teleported ones though)
+            entityAdditionalTickConsumer.accept(newEntity);
         }
     }
 

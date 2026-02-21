@@ -6,6 +6,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.storage.WritableLevelData;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 @Mixin(ServerLevel.class)
 public abstract class ServerLevelMixin extends Level implements ServerWorldExtended {
@@ -52,14 +54,14 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
     }
 
     @Override
-    public void worldthreader$finishReceivingTeleportedEntities() {
+    public void worldthreader$finishReceivingTeleportedEntities(Consumer<Entity> entityAdditionalTickConsumer) {
         Set<ResourceKey<Level>> levelKeys = this.getServer().levelKeys();
         for (ResourceKey<Level> source : levelKeys) {
             ArrayList<TeleportedEntityInfo> teleportedEntityList = this.receivedEntities.remove(source);
             if (teleportedEntityList != null) {
                 for (TeleportedEntityInfo teleportedEntity : teleportedEntityList) {
                     try {
-                        DimensionChangeHelper.nonPassengerArriveInWorld(teleportedEntity, teleportedEntity.oldEntityObject(), (ServerLevel) (Object) this, (ServerLevel) teleportedEntity.oldEntityObject().level());
+                        DimensionChangeHelper.nonPassengerArriveInWorld(teleportedEntity, teleportedEntity.oldEntityObject(), (ServerLevel) (Object) this, (ServerLevel) teleportedEntity.oldEntityObject().level(), entityAdditionalTickConsumer);
                     } catch (Exception e) {
                         throw new IllegalStateException("Worldthreader: Failed to receive teleported entity: " + teleportedEntity + " in dimension " + this.dimension() + "!", e);
                     }

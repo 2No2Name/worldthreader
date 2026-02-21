@@ -6,6 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import no2.worldthreader.common.mixin_support.interfaces.ServerWorldExtended;
 import no2.worldthreader.common.thread.ThreadHelper;
@@ -13,6 +14,8 @@ import no2.worldthreader.common.thread.ThreadLocals;
 import no2.worldthreader.common.thread.ThreadOwnedObject;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.function.BooleanSupplier;
 
 public class ServerWorldTicking {
@@ -69,7 +72,16 @@ public class ServerWorldTicking {
             crashReason = "Exception receiving entities from other worlds";
             worldThreadingManager.withinTickBarrier();
             ((ServerWorldExtended) serverLevel).worldthreader$setTickPhase(WorldThreaderTickPhase.RECEIVE_TELEPORTS);
-            finishTeleportsToWorld(serverLevel);
+            Collection<Entity> tickOnceMore = finishTeleportsToWorld(serverLevel);
+
+            crashReason = "Exception ticking entities after arrival from other worlds";
+            worldThreadingManager.withinTickBarrier();
+            ((ServerWorldExtended) serverLevel).worldthreader$setTickPhase(WorldThreaderTickPhase.TICK_AFTER_TELEPORT);
+            for (Entity entity : tickOnceMore) {
+                if (entity.level() instanceof ServerLevel entityLevel && entityLevel == serverLevel && entity.isAlive()) {
+                    serverLevel.tickNonPassenger(entity);
+                }
+            }
 
             crashReason = "Exception restoring entities that could not be teleported to another world";
             worldThreadingManager.withinTickBarrier();
@@ -102,8 +114,14 @@ public class ServerWorldTicking {
         worldThreadingManager.handleCrash(crashReport);
     }
 
-    public static void finishTeleportsToWorld(ServerLevel world) {
-        ((ServerWorldExtended) world).worldthreader$finishReceivingTeleportedEntities();
+    /**
+     * Place teleported entities in the level.
+     * Returns a collection of entities that should be ticked again before the end of the tick. See {@link no2.worldthreader.init.ModGameRules#TELEPORTED_ENTITY_ADDITIONAL_TICK}
+     */
+    public static Collection<Entity> finishTeleportsToWorld(ServerLevel world) {
+        ArrayList<Entity> entities = new ArrayList<>();
+        ((ServerWorldExtended) world).worldthreader$finishReceivingTeleportedEntities(entities::add);
+        return entities;
     }
 
     public static void recoverFailedTeleports(ServerLevel world) {
