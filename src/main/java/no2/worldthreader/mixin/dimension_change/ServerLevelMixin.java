@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.storage.WritableLevelData;
+import no2.worldthreader.WorldThreaderMod;
 import no2.worldthreader.common.WorldThreaderTickPhase;
 import no2.worldthreader.common.dimension_change.DimensionChangeHelper;
 import no2.worldthreader.common.dimension_change.TeleportedEntityInfo;
@@ -61,6 +62,11 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
                     try {
                         DimensionChangeHelper.nonPassengerArriveInWorld(teleportedEntity, teleportedEntity.oldEntityObject(), (ServerLevel) (Object) this, (ServerLevel) teleportedEntity.oldEntityObject().level());
                     } catch (Exception e) {
+                        if (worldthreader$isRecoverablePlayerSwapFailure(e)) {
+                            ((ServerWorldExtended) teleportedEntity.oldEntityObject().level()).worldthreader$receiveFailedTeleport(teleportedEntity);
+                            WorldThreaderMod.LOGGER.error("Worldthreader: Recovering failed teleport due to player swap mismatch. Entity={} targetDimension={}", teleportedEntity, this.dimension(), e);
+                            continue;
+                        }
                         throw new IllegalStateException("Worldthreader: Failed to receive teleported entity: " + teleportedEntity + " in dimension " + this.dimension() + "!", e);
                     }
                 }
@@ -117,5 +123,17 @@ public abstract class ServerLevelMixin extends Level implements ServerWorldExten
     @Override
     public void worldthreader$setTickPhase(WorldThreaderTickPhase tickPhase) {
         this.tickPhase = tickPhase;
+    }
+
+    @Unique
+    private static boolean worldthreader$isRecoverablePlayerSwapFailure(Throwable throwable) {
+        for (Throwable current = throwable; current != null; current = current.getCause()) {
+            String message = current.getMessage();
+            if (message != null && (message.contains("Players not matching before player swap")
+                    || message.contains("Player swapping is already happening"))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

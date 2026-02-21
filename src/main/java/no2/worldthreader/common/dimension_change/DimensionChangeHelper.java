@@ -45,19 +45,21 @@ public class DimensionChangeHelper {
             teleportTransition = teleportedEntityInfo.entityTransition();
         } else {
             ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(teleportedEntityInfo);
+            try {
+                //Server players might be able to move after starting to teleport (packets being sent from the client, sent
+                // before client knows about changing dimensions) This is why the entry position of the portal processor
+                // must be updated to the original position.
+                //Furthermore, using oldEntityObject.portalProcessor is not safe, as it might be null, since a moved player
+                // will also be ticked (the network connection tick ticks the serverside player entity), removing the portal
+                // processor if the player is no longer intersecting the portal.
+                // Related to https://github.com/2No2Name/worldthreader/issues/12
+                PortalProcessor portalProcessor = Objects.requireNonNull(teleportedEntityInfo.portalProcessor());
+                portalProcessor.updateEntryPosition(teleportedEntityInfo.portalProcessorPos());
 
-            //Server players might be able to move after starting to teleport (packets being sent from the client, sent
-            // before client knows about changing dimensions) This is why the entry position of the portal processor
-            // must be updated to the original position.
-            //Furthermore, using oldEntityObject.portalProcessor is not safe, as it might be null, since a moved player
-            // will also be ticked (the network connection tick ticks the serverside player entity), removing the portal
-            // processor if the player is no longer intersecting the portal.
-            // Related to https://github.com/2No2Name/worldthreader/issues/12
-            PortalProcessor portalProcessor = Objects.requireNonNull(teleportedEntityInfo.portalProcessor());
-            portalProcessor.updateEntryPosition(teleportedEntityInfo.portalProcessorPos());
-
-            teleportTransition = portalProcessor.getPortalDestination(source, oldEntityObject);
-            ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(previous);
+                teleportTransition = portalProcessor.getPortalDestination(source, oldEntityObject);
+            } finally {
+                ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(previous);
+            }
         }
 
         if (teleportTransition == null) {
@@ -77,16 +79,19 @@ public class DimensionChangeHelper {
         TeleportedEntityInfo previous = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
         ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(teleportedEntityInfo);
         Entity newEntity;
-        if (oldEntityObject instanceof ServerPlayer) {
-            //ServerPlayer teleportation code is mostly separate from normal entity teleportation code, both in vanilla and worldthreader.
-            //This should only be called when the player is a passenger. Normal player teleportation happens outside the multithreaded part of the tick.
-            //Heavily modified method, essentially split into departure and arrival
-            newEntity = oldEntityObject.teleport(teleportTransition);
-        } else {
-            //Heavily modified method, essentially split into departure and arrival
-            newEntity = oldEntityObject.teleportCrossDimension(source, destination, teleportTransition);
+        try {
+            if (oldEntityObject instanceof ServerPlayer) {
+                //ServerPlayer teleportation code is mostly separate from normal entity teleportation code, both in vanilla and worldthreader.
+                //This should only be called when the player is a passenger. Normal player teleportation happens outside the multithreaded part of the tick.
+                //Heavily modified method, essentially split into departure and arrival
+                newEntity = oldEntityObject.teleport(teleportTransition);
+            } else {
+                //Heavily modified method, essentially split into departure and arrival
+                newEntity = oldEntityObject.teleportCrossDimension(source, destination, teleportTransition);
+            }
+        } finally {
+            ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(previous);
         }
-        ((ServerWorldExtended) destination).worldthreader$setArrivingEntityInfo(previous);
 
         if (newEntity == null) {
             throw new IllegalStateException("Worldthreader: Entity could not be placed after crossing dimensions: " + oldEntityObject);
