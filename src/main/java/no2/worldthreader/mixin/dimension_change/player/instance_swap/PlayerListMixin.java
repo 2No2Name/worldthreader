@@ -37,34 +37,37 @@ public abstract class PlayerListMixin implements ServerPlayerInstanceSwapper {
         if (ThreadLocals.PLAYER_SWAP_4_LEVEL.get() != null) {
             throw new IllegalStateException("Player swapping is already happening!");
         }
-        ThreadLocals.PLAYER_SWAP_4_LEVEL.set(newLevel);
-        ServerPlayer newPlayer = this.respawn(previousPlayer, true, null);
+        try {
+            ThreadLocals.PLAYER_SWAP_4_LEVEL.set(newLevel);
 
-        //Additional Stuff
-        if (newPlayer.isChangingDimension() != previousPlayer.isChangingDimension()) {
-            newPlayer.isChangingDimension = previousPlayer.isChangingDimension();
-        }
-        if (newPlayer.getPortalCooldown() != previousPlayer.getPortalCooldown()) {
-            newPlayer.setPortalCooldown(previousPlayer.getPortalCooldown());
-        }
-        if (newPlayer.enderPearls.isEmpty() && !previousPlayer.enderPearls.isEmpty()) {
-            for (var enderpearl : previousPlayer.enderPearls) {
-                newPlayer.registerEnderPearl(enderpearl);
-                //Setting the owner in the enderpearl might be a good idea as well, but since worldthreader
-                // modifies the getOwner function such that the outdated previous value is immediately replaced on
-                // access, it doesn't make a difference (unless other mods directly use the field)
+            ServerPlayer newPlayer = this.respawn(previousPlayer, true, null);
+
+            //Additional Stuff
+            if (newPlayer.isChangingDimension() != previousPlayer.isChangingDimension()) {
+                newPlayer.isChangingDimension = previousPlayer.isChangingDimension();
             }
-        }
-        if (newPlayer.fishing == null && previousPlayer.fishing != null) {
-            newPlayer.fishing = previousPlayer.fishing;
-            //Thread safety of the field implemented in FishingRodItemMixin
-        }
+            if (newPlayer.getPortalCooldown() != previousPlayer.getPortalCooldown()) {
+                newPlayer.setPortalCooldown(previousPlayer.getPortalCooldown());
+            }
+            if (newPlayer.enderPearls.isEmpty() && !previousPlayer.enderPearls.isEmpty()) {
+                for (var enderpearl : previousPlayer.enderPearls) {
+                    newPlayer.registerEnderPearl(enderpearl);
+                    //Setting the owner in the enderpearl might be a good idea as well, but since worldthreader
+                    // modifies the getOwner function such that the outdated previous value is immediately replaced on
+                    // access, it doesn't make a difference (unless other mods directly use the field)
+                }
+            }
+            if (newPlayer.fishing == null && previousPlayer.fishing != null) {
+                newPlayer.fishing = previousPlayer.fishing;
+                //Thread safety of the field implemented in FishingRodItemMixin
+            }
 
-        //Others fields like this might be relevant but hard to track down, not doing it for now
-//        newPlayer.startingToFallPosition = previousPlayer.startingToFallPosition;
-
-        ThreadLocals.PLAYER_SWAP_4_LEVEL.remove();
-        return newPlayer;
+            //Others fields like this might be relevant but hard to track down, not doing it for now
+            //        newPlayer.startingToFallPosition = previousPlayer.startingToFallPosition;
+            return newPlayer;
+        } finally {
+            ThreadLocals.PLAYER_SWAP_4_LEVEL.remove();
+        }
     }
 
     @WrapOperation(
