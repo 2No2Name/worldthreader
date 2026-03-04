@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PortalProcessor;
+import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,7 @@ public record TeleportedEntityInfo(
         @NotNull Entity oldEntityObject,
         @Nullable CompoundTag nbtCompound, //ONLY NULL FOR SERVER PLAYER
         @Nullable TeleportTransition entityTransition,
+        @NotNull PositionMoveRotation positionMoveRotation,
         @Nullable PortalProcessor portalProcessor,
         @Nullable BlockPos portalProcessorPos,
         @Nullable Direction.Axis portalAxis,
@@ -30,13 +32,14 @@ public record TeleportedEntityInfo(
                                 @Nullable Direction.Axis portalAxis,
                                 @Nullable Vec3 inPortalPos,
                                 @NotNull List<TeleportedEntityInfo> passengers) {
-        this(oldEntityObject, nbtCompound, entityTransition, portalProcessor, portalProcessor == null ? null : portalProcessor.getEntryPosition(), portalAxis, inPortalPos, passengers);
+        this(oldEntityObject, nbtCompound, entityTransition, PositionMoveRotation.of(oldEntityObject), portalProcessor, portalProcessor == null ? null : portalProcessor.getEntryPosition(), portalAxis, inPortalPos, passengers);
 
     }
 
     public TeleportedEntityInfo(Entity oldEntityObject,
                                 @Nullable CompoundTag nbtCompound, //ONLY NULL FOR SERVER PLAYER
                                 @Nullable TeleportTransition entityTransition,
+                                @NotNull PositionMoveRotation positionMoveRotation,
                                 @Nullable PortalProcessor portalProcessor,
                                 @Nullable BlockPos portalProcessorPos,
                                 @Nullable Direction.Axis portalAxis,
@@ -45,6 +48,7 @@ public record TeleportedEntityInfo(
         this.oldEntityObject = oldEntityObject;
         this.nbtCompound = nbtCompound;
         this.entityTransition = entityTransition;
+        this.positionMoveRotation = positionMoveRotation;
         this.portalProcessor = portalProcessor;
         this.portalProcessorPos = portalProcessorPos;
         this.portalAxis = portalAxis;

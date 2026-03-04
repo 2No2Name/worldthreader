@@ -6,6 +6,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.level.storage.TagValueOutput;
@@ -152,5 +153,21 @@ public abstract class EntityMixin implements EntityExtended {
         if (currentlyArrivingEntity == null) {
             original.call(instance);
         }
+    }
+
+    @WrapOperation(
+            method = "teleportCrossDimension(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/portal/TeleportTransition;)Lnet/minecraft/world/entity/Entity;",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/PositionMoveRotation;of(Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/world/entity/PositionMoveRotation;"
+            )
+    )
+    private PositionMoveRotation getPositionMoveRelation(Entity entity, Operation<PositionMoveRotation> original, @Local(argsOnly = true, ordinal = 1) ServerLevel destination) {
+        TeleportedEntityInfo currentlyArrivingEntity = ((ServerWorldExtended) destination).worldthreader$arrivingEntityInfo();
+        if (currentlyArrivingEntity == null || currentlyArrivingEntity.oldEntityObject() != entity) {
+            return original.call(entity);
+        }
+        //The velocity / rotation etc. can be modified in the old entity after it was removed from the world when teleporting since vanilla does not prevent the execution of the rest of the tick method
+        return currentlyArrivingEntity.positionMoveRotation();
     }
 }
