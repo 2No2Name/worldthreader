@@ -41,7 +41,7 @@ jobs:
           cache-read-only: true
 
       - name: Validate Gradle Wrapper Integrity
-        uses: gradle/wrapper-validation-action@v2
+        uses: gradle/actions/wrapper-validation@v5
 
       - name: make gradle wrapper executable
         run: chmod +x gradlew
