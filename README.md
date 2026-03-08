@@ -49,6 +49,10 @@ Interdimensional commands in command blocks or shared scoreboard accesses from d
 be in a different order since there are no interdimensional ordering guarantees within a single game tick for
 interdimensional commands. The order of commands within one dimension remains the same as in vanilla.
 
+Interdimensional entity references will use exclusive dimension access if needed. To avoid this happening in every tick,
+interdimensional entity references will not find entities that were not present in other dimensions at the start of the
+current tick.
+
 ##### Can my dimensions get de-synchronized?
 
 No. Worldthreader will always synchronize the dimensions with each other, setting the overall MSPT to that of the
