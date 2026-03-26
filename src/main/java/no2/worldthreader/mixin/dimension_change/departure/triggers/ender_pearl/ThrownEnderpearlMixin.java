@@ -13,8 +13,8 @@ import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnder
 import net.minecraft.world.level.Level;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.thread.WorldThreadingManager;
-import no2.worldthreader.mixin.threading_compatibility.entity_owners.ProjectileMixin;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,7 +22,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Mixin(ThrownEnderpearl.class)
@@ -41,7 +40,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
 
     @Override
     public void setCachedOwnerWrapped(Projectile theEnderPearl, @Nullable EntityReference<Entity> entityReference) {
-        EntityReference<Entity> previousOwner = this.worldthreader$getCachedOwnerUnsafe();
+        EntityReference<Entity> previousOwner = this.owner;
         super.setCachedOwnerWrapped(theEnderPearl, entityReference);
         if (previousOwner == entityReference) {
             return;
@@ -50,16 +49,8 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
         boolean isPlayer = newOwner instanceof ServerPlayer;
         this.hasServerPlayerAsOwner = isPlayer;
         if (isPlayer) {
-            this.ensureThreadsafeAccess(newOwner);
             //Register the enderpearl more reliably than vanilla. Then omit redundant registering during the enderpearl tick which would require exclusive world access
             ((ServerPlayer) newOwner).registerEnderPearl((ThrownEnderpearl) (Object) this);
-        }
-    }
-
-    @Unique
-    private void ensureThreadsafeAccess(Entity cachedOwner) {
-        if (WorldThreadingManager.hasToAcquireExclusiveAccessBeforeAccessing((ServerLevel) cachedOwner.level())) {
-            Objects.requireNonNull(this.level().getServer()).getAllLevels();
         }
     }
 
@@ -104,7 +95,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
 
     @WrapOperation(
             method = "tick",
-            at = @At(value = "FIELD", target = "Lnet/minecraft/server/level/ServerPlayer;wonGame:Z")
+            at = @At(value = "FIELD", target = "Lnet/minecraft/server/level/ServerPlayer;wonGame:Z", opcode = Opcodes.GETFIELD)
     )
     private boolean handleNullPlayer2(ServerPlayer instance, Operation<Boolean> original) {
         if (instance == null && this.hasServerPlayerAsOwner && this.owner != null) {
