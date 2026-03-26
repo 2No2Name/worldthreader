@@ -1,7 +1,6 @@
-Worldthreader 2.7.4 for Minecraft 1.21.11 fixes an issue.
+Worldthreader 2.8.0 is the first release for Minecraft 26.1 and 26.1.1
 Please report any issues you encounter to the [issue tracker of worldthreader](https://github.com/2No2Name/worldthreader/issues). As worldthreader likely comes with massive mod compatibility issues, please do not report crashes and issues to other mods' issue trackers before confirming the issue without worldthreader.
 
 
-## Fixes
-- TNT looting not working (#48)
-- Remove duplicated thread safety of entity references
+## Changes
+- Update to Minecraft 26.1

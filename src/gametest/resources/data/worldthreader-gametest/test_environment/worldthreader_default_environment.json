@@ -9,7 +9,8 @@
       }
     },
     {
-      "type": "minecraft:time_of_day",
+      "type": "minecraft:clock_time",
+      "clock": "minecraft:overworld",
       "time": 12000
     },
     {

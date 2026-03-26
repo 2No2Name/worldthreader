@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "no2.worldthreader.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "plugin": "no2.worldthreader.WorldThreaderMixinPlugin",
   "mixinextras": {
     "minVersion": "0.5.0"
@@ -50,7 +50,6 @@
     "threading_compatibility.GameruleCommandMixin",
     "threading_compatibility.MinecraftServerMixin",
     "threading_compatibility.PlayerListMixin",
-    "threading_compatibility.PrimaryLevelDataMixin",
     "threading_compatibility.RedstoneTorchBlockMixin",
     "threading_compatibility.SensorMixin",
     "threading_compatibility.ServerPlayerMixin",

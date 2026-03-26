@@ -3,7 +3,7 @@ package no2.worldthreader.mixin.core;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.world.level.storage.WorldData;
+import net.minecraft.world.level.gamerules.GameRules;
 import no2.worldthreader.common.mixin_support.interfaces.MinecraftServerExtended;
 import no2.worldthreader.common.thread.WorldThreadingManager;
 import no2.worldthreader.init.ModGameRules;
@@ -27,10 +27,10 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 	@Shadow
 	public abstract PlayerList getPlayerList();
 
-    @Shadow
-    public abstract WorldData getWorldData();
+	@Shadow
+	public abstract GameRules getGameRules();
 
-    @Unique
+	@Unique
 	private WorldThreadingManager worldThreadingManager;
 
 
@@ -52,7 +52,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 			this.worldThreadingManager = null;
 		}
 
-        if (this.getWorldData().getGameRules().get(ModGameRules.ACTIVE)) {
+		if (this.getGameRules().get(ModGameRules.ACTIVE)) {
 			this.worldThreadingManager = new WorldThreadingManager((MinecraftServer) (Object) this);
 		}
 	}
@@ -63,7 +63,7 @@ public abstract class MinecraftServerMixin implements MinecraftServerExtended {
 			require = 1, allow = 1
 	)
 	private Iterable<ServerLevel> multiThreadWorldLoop(MinecraftServer instance) {
-        if (this.getWorldData().getGameRules().get(ModGameRules.ACTIVE) == (this.worldThreadingManager == null)) {
+		if (this.getGameRules().get(ModGameRules.ACTIVE) == (this.worldThreadingManager == null)) {
 			this.replaceWorldThreadingManager();
 		}
 

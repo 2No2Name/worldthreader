@@ -25,7 +25,7 @@ public class ModGameRules {
 
 	public static void syncDebugFlag(MinecraftServer server) {
 		if (DEBUG != null) {
-            WorldThreadingManager.DEBUG = server.getWorldData().getGameRules().get(DEBUG);
+			WorldThreadingManager.DEBUG = server.getGameRules().get(DEBUG);
 		}
 	}
 }

@@ -57,11 +57,6 @@ public class ServerWorldTicking {
             // [VanillaCopy] MinecraftServer#tickChildren
             ProfilerFiller profilerFiller = Profiler.get();
             profilerFiller.push(() -> serverLevel + " " + serverLevel.dimension().identifier());
-            if (server.getTickCount() % 20 == 0) {
-                profilerFiller.push("timeSync");
-                server.synchronizeTime(serverLevel);
-                profilerFiller.pop();
-            }
             profilerFiller.push("tick");
 
             crashReason = "Exception ticking world";

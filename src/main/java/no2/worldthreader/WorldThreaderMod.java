@@ -1,7 +1,7 @@
 package no2.worldthreader;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.Blocks;
 import no2.worldthreader.common.mixin_support.interfaces.BeforeThreadingInitialization;
@@ -19,8 +19,8 @@ public class WorldThreaderMod implements ModInitializer {
 	public void onInitialize() {
 		ModGameRules.registerGameRules();
 
-        ServerWorldEvents.LOAD.register((server, world) -> ((MinecraftServerExtended) server).worldthreader$onLevelAddedOrRemoved());
-        ServerWorldEvents.UNLOAD.register((server, world) -> ((MinecraftServerExtended) server).worldthreader$onLevelAddedOrRemoved());
+        ServerLevelEvents.LOAD.register((server, world) -> ((MinecraftServerExtended) server).worldthreader$onLevelAddedOrRemoved());
+        ServerLevelEvents.UNLOAD.register((server, world) -> ((MinecraftServerExtended) server).worldthreader$onLevelAddedOrRemoved());
 	}
 
 	public static void initializeBeforeThreading(MinecraftServer server) {

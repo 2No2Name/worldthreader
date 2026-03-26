@@ -16,8 +16,8 @@ public class ServerLevelMixin {
     //Cause of the issue: POIs are sent to be added on the minecraft server, not the world thread.
     //The fix: Run the POI removal / addition on the world thread. No indirection through the event loop as it requires more mixins and isn't needed, because the executor just immediately calls the runnable too.
     @WrapOperation(
-            method = {"method_66017", "method_66019"},
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;execute(Ljava/lang/Runnable;)V")
+            method = {"lambda$updatePOIOnBlockStateChange$0", "lambda$updatePOIOnBlockStateChange$2"},
+            at = @At(value = "INVOKE:ALL", target = "Lnet/minecraft/server/MinecraftServer;execute(Ljava/lang/Runnable;)V")
     )
     private void useWorldThread(MinecraftServer instance, Runnable runnable, Operation<Void> original) {
         if (WorldThreadingManager.hasToAcquireExclusiveAccessBeforeAccessing((ServerLevel) (Object) this)) {

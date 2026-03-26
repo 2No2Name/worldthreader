@@ -1,7 +1,7 @@
 import me.modmuss50.mpp.ReleaseType
 
 plugins {
-    id 'fabric-loom' version '1.14-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom' version '1.15-SNAPSHOT'
     id 'maven-publish'
     id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
@@ -24,14 +24,13 @@ repositories {
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     //Worldthreader requires fabric gamerule api v1
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modImplementation fabricApi.module("fabric-gametest-api-v1", project.fabric_version)
+    implementation fabricApi.module("fabric-gametest-api-v1", project.fabric_version)
 
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }
@@ -89,7 +88,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
+    it.options.release = 25
 }
 
 java {
@@ -98,8 +97,8 @@ java {
     // If you remove this line, sources will not be generated.
     withSourcesJar()
 
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
@@ -129,7 +128,7 @@ publishing {
 publishMods {
     changelog = rootProject.file("CHANGELOG.md").getText().trim()
     type = getReleaseType()
-    file = remapJar.archiveFile
+    file = jar.archiveFile
 
     def mod_version = "mc${project.minecraft_version}-${project.mod_version}"
     def fabric_mod_version = mod_version + "-fabric"
