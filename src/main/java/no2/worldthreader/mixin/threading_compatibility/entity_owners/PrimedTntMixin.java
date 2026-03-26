@@ -32,12 +32,12 @@ public abstract class PrimedTntMixin extends Entity implements TraceableEntity, 
             method = "getOwner()Lnet/minecraft/world/entity/LivingEntity;"
     )
     public LivingEntity getOwner(Operation<LivingEntity> original) {
-        Entity owner = original.call();
+        LivingEntity owner = original.call();
         if (owner != null && owner.level() instanceof ServerLevel otherLevel && otherLevel != this.level() && WorldThreadingManager.hasToAcquireExclusiveAccessBeforeAccessing(otherLevel)) {
             //Directly accessing the other level on the MinecraftServer will trigger worldthreader's serial fallback
             Objects.requireNonNull(this.level().getServer()).getAllLevels();
         }
-        return null;
+        return owner;
     }
 
     @Override
