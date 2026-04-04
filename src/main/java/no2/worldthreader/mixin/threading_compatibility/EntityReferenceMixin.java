@@ -38,6 +38,10 @@ public abstract class EntityReferenceMixin<StoredEntityType extends UniquelyIden
         }
     }
 
+    @Override
+    public boolean worldthreader$isEntityInSameDimension(Level level, Class<StoredEntityType> storedEntityType) {
+        return this.worldthreader$getEntitySameDimension(level, storedEntityType) != null;
+    }
 
     @Override
     public StoredEntityType worldthreader$getEntitySameDimension(Level level, Class<StoredEntityType> clazz) {

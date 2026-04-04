@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import no2.worldthreader.WorldThreaderMod;
 import no2.worldthreader.common.ServerWorldTicking;
@@ -352,11 +353,16 @@ public class WorldThreadingManager {
         return null;
     }
 
-    public record PlayerInfo(boolean dead, boolean removed, boolean wonGame) {
+	public record PlayerInfo(boolean dead, boolean removed, boolean wonGame,
+							 GameType gameMode) {
         public PlayerInfo(ServerPlayer player) {
-            this(player.isDeadOrDying(), player.isRemoved(), player.wonGame);
+			this(player.isDeadOrDying(), player.isRemoved(), player.wonGame, player.gameMode());
         }
     }
+
+	public boolean wasUUIDAPlayer(UUID uuid) {
+		return this.lastPlayerInfos.containsKey(uuid);
+	}
 
     public boolean wasPlayerAlive(UUID uuid, boolean fallback) {
         PlayerInfo playerInfo = this.lastPlayerInfos.get(uuid);
@@ -373,5 +379,10 @@ public class WorldThreadingManager {
         PlayerInfo playerInfo = this.lastPlayerInfos.get(uuid);
         return playerInfo != null && playerInfo.wonGame();
     }
+
+	public GameType getLastPlayerGameMode(UUID uuid) {
+		PlayerInfo playerInfo = this.lastPlayerInfos.get(uuid);
+		return playerInfo != null ? playerInfo.gameMode() : null;
+	}
 
 }

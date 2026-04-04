@@ -64,4 +64,5 @@ public abstract class ProjectileMixin extends Entity implements TraceableEntity 
 }
 
 
-//TODO getAddEntityPacket, mayInteract
+//TODO getAddEntityPacket:
+// mayInteract: (shoot interdimensional flame arrow into powder snow) -> can actually just get the owner unsafely, unless another mod uses the player for something else in that call chain
