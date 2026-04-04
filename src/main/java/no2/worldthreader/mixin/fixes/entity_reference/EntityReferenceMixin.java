@@ -52,7 +52,7 @@ public abstract class EntityReferenceMixin {
             ServerLevel levelWithUUID = worldThreadingManager.getUUIDLevel(uUID, serverLevel);
             if (levelWithUUID != null) {
                 worldThreadingManager.waitForExclusiveWorldAccess(false);
-                return levelWithUUID.getEntity(uUID);
+                return levelWithUUID.getEntity(uUID);// TODO what if the entity changed dimensions in the meantime
             }
 
             return null;

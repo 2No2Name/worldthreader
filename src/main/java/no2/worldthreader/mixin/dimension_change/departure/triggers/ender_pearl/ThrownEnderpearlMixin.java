@@ -45,6 +45,7 @@ public abstract class ThrownEnderpearlMixin extends ProjectileMixin {
         if (previousOwner == entityReference) {
             return;
         }
+        //TODO why are we not checking is tick multithreaded here?, at least document why
         Entity newOwner = this.getOwner();
         boolean isPlayer = newOwner instanceof ServerPlayer;
         this.hasServerPlayerAsOwner = isPlayer;
