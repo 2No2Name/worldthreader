@@ -4,3 +4,5 @@ Please report any issues you encounter to the [issue tracker of worldthreader](h
 
 ## Changes
 - Update to Minecraft 26.1
+- Reduce exclusive world accesses from interdimensional projectiles
+- Reduce exclusive world accesses from interdimensional piglin anger
