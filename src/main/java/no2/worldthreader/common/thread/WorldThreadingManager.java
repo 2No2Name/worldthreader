@@ -42,7 +42,11 @@ public class WorldThreadingManager {
 
 
 	private final AtomicInteger threadsRequestingExclusiveWorldAccess = new AtomicInteger();
-	private final Semaphore exclusiveWorldAccessLock = new Semaphore(1);
+
+	private final Semaphore yieldingLevels = new Semaphore(0); //Usually 0, unless threads are currently trying to give the world to another thread which hasn't acquired it yet
+	private final Semaphore giveBackLevelAccess = new Semaphore(0); //Usually 0, unless a thread is currently giving back its exclusive world access to the world threads
+
+
 	//This variable is only modified by the owner of the permit from the semaphore (using the semaphore like a mutex)
 	private final AtomicReference<Thread> threadWithExclusiveWorldAccess = new AtomicReference<>(null);
 
@@ -77,6 +81,10 @@ public class WorldThreadingManager {
 			this.withinTickBarrier.register();
 			worldThread.start();
 		}
+	}
+
+	public int numberOfLevels() {
+		return this.worldThreads.size();
 	}
 
 	public static void ensureExclusiveScoreboardAccess(MinecraftServer server) {
@@ -168,39 +176,73 @@ public class WorldThreadingManager {
 		this.withinTickBarrier.forceTermination();
 	}
 
-	private int barrier(Phaser phaser) {
-        this.tryGiveAwayExclusiveWorldAccess();
-        int phase = phaser.getPhase();
-        phaser.arrive();
-        this.unparkThreadWaitingOnExclusiveWorldAccess();
-        return phaser.awaitAdvance(phase);
+	public void threadingSafePoint() {
+		this.tryGiveAwayExclusiveWorldAccess();
+		if (this.threadsRequestingExclusiveWorldAccess.get() > 0) {
+			this.releaseLevel();
+			this.reacquireLevel();
+		}
 	}
 
-	public boolean hasExclusiveWorldAccess() {
-		return this.threadWithExclusiveWorldAccess.get() == Thread.currentThread();
+	private void releaseLevel() {
+		if (!this.isWorldThread(Thread.currentThread())) {
+			throw new IllegalCallerException("Only level threads can release their level for other threads!");
+		}
+		this.yieldingLevels.release();
+	}
+
+	private void reacquireLevel() {
+		if (!this.isWorldThread(Thread.currentThread())) {
+			throw new IllegalCallerException("Only level threads can release reacquire their level after yielding!");
+		}
+		if (this.threadsRequestingExclusiveWorldAccess.get() == 0) {
+			boolean b = this.yieldingLevels.tryAcquire();
+			if (b) {
+				return;
+			}
+			//If tryAcquire didn't work, it is guaranteed that we can reacquire below, since some other thread must have taken exclusive access
+		}
+		this.giveBackLevelAccess.acquireUninterruptibly();
 	}
 
 	/**
-	 * For some reason the current thread (current ticking its world) wants to access another world.
+	 * Barrier, also includes a safe point, see {@link WorldThreadingManager#threadingSafePoint()}
+	 *
+	 * @param phaser the phaser used
+	 * @return next phaser phase, negative if terminated
+	 */
+	private int barrier(Phaser phaser) {
+        this.tryGiveAwayExclusiveWorldAccess();
+		boolean threadOwnsLevel = this.isWorldThread(Thread.currentThread());
+		if (threadOwnsLevel) {
+			this.releaseLevel();
+		}
+        int phase = phaser.getPhase();
+		phaser.arrive();
+		int nextPhase = phaser.awaitAdvance(phase);
+		if (threadOwnsLevel) {
+			this.reacquireLevel();
+		}
+		return nextPhase;
+	}
+
+	/**
+	 * For some reason a current thread wants to access a world that is not its own.
 	 * To guarantee some level of thread-safety, we need to wait until the thread of the other world is not modifying
 	 * its world - meaning that it ran into a barrier or also entered this function.
 	 * For now, acquiring exclusive access for all worlds at once. This can probably be changed, but then some
-	 * threads will have to give away their exclusive access when requesting even more exclusive access.
+	 * threads will have to give away their exclusive access when requesting even more exclusive access. Also, deadlocks
+	 * may be possible unless requesting more exclusive access includes releasing all held exclusive access.
 	 * <p>
 	 * Once exclusive world access is ensured, we can proceed. Releasing the exclusive world access is not possible
-	 * until this thread runs into a barrier, because we cannot know for how long the thread is going to access the worlds.
+	 * until this thread runs into a safe point, because we cannot know for how long the thread is going to access the worlds.
 	 * <p>
 	 * Assumptions:
-	 * After each barrier the threads will no longer access the other worlds until this function is called again.
+	 * After each safe point the threads will no longer access the other worlds until this function is called again.
 	 */
     public void waitForExclusiveWorldAccess(boolean noDebug) {
 		Thread currentThread = Thread.currentThread();
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
-
-		if (!isWorldThread(currentThread)) {
-			WorldThreaderMod.LOGGER.error("Thread {} is requesting exclusive world access. However, only world threads may request exclusive access during the world ticking!", currentThread);
-			throw new IllegalStateException("Only world threads may request exclusive access during world ticking!");
-		}
 
 		if (DEBUG) {
 			if (thread != currentThread) {
@@ -224,28 +266,23 @@ public class WorldThreadingManager {
 			LockSupport.unpark(thread);
 		}
 
+		int levelsToAcquire = this.numberOfLevels();
+		if (this.isWorldThread(thread)) {
+			levelsToAcquire--;
+		}
 		//If multiple threads try to acquire exclusive world access, all but one will block here
-		this.exclusiveWorldAccessLock.acquireUninterruptibly();
+		this.yieldingLevels.acquireUninterruptibly(levelsToAcquire);
 
 
 		this.threadWithExclusiveWorldAccess.set(currentThread);
 
-		while (true) {
-			boolean allOtherThreadsWaiting = this.areAllThreadsInBarrierOrAccessRequest();
-			if (allOtherThreadsWaiting) {
-				//Now we have exclusive world access.
-				this.setOwnershipOfAllThreadOwnedObjects(currentThread);
-				if (DEBUG) {
-					WorldThreaderMod.LOGGER.info("Thread {} has acquired exclusive world access", currentThread.getName());
-					WorldThreaderMod.LOGGER.info("Total threads requesting exclusive world access: {}", this.threadsRequestingExclusiveWorldAccess.get());
-				}
-				return;
-			} else {
-				//Use parking instead of spin-locking for performance reasons
-				LockSupport.park(this);
-			}
-		}
-	}
+		//Now we have exclusive world access.
+		this.setOwnershipOfAllThreadOwnedObjects(currentThread);
+		if (DEBUG) {
+			WorldThreaderMod.LOGGER.info("Thread {} has acquired exclusive world access", currentThread.getName());
+			WorldThreaderMod.LOGGER.info("Total threads requesting exclusive world access: {}", this.threadsRequestingExclusiveWorldAccess.get());
+        }
+    }
 
 	private void setOwnershipOfAllThreadOwnedObjects(Thread currentThread) {
 		for (ThreadOwnedObject[] threadOwnedObjects : this.worldThreads2OwnedObjects.values()) {
@@ -267,40 +304,21 @@ public class WorldThreadingManager {
         });
     }
 
-	private boolean areAllThreadsInBarrierOrAccessRequest() {
-		int totalThreads = this.tickBarrier.getRegisteredParties();
-
-		int arrivedParties = this.withinTickBarrier.getRegisteredParties() - this.withinTickBarrier.getUnarrivedParties();
-		arrivedParties += this.tickBarrier.getRegisteredParties() - this.tickBarrier.getUnarrivedParties();
-		arrivedParties += this.threadsRequestingExclusiveWorldAccess.get();
-
-		if (arrivedParties > totalThreads) {
-			throw new IllegalStateException("More arrived parties than expected!");
-		}
-
-		return totalThreads == arrivedParties;
-	}
-
     public void tryGiveAwayExclusiveWorldAccess() {
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
-		if (thread != null) {
-			if (thread == Thread.currentThread()) {
-				this.resetOwnershipOfAllThreadOwnedObjects();
-				int andDecrement = this.threadsRequestingExclusiveWorldAccess.getAndDecrement();
-				if (DEBUG) {
-					WorldThreaderMod.LOGGER.info("Thread {} releasing exclusive world access", thread.getName());
-					WorldThreaderMod.LOGGER.info("Other threads waiting for exclusive world access: {}", andDecrement - 1);
-				}
-				this.threadWithExclusiveWorldAccess.set(null);
-				this.exclusiveWorldAccessLock.release();
+		if (thread != null && thread == Thread.currentThread()) {
+			this.resetOwnershipOfAllThreadOwnedObjects();
+			int andDecrement = this.threadsRequestingExclusiveWorldAccess.getAndDecrement();
+			if (DEBUG) {
+				WorldThreaderMod.LOGGER.info("Thread {} releasing exclusive world access", thread.getName());
+				WorldThreaderMod.LOGGER.info("Other threads waiting for exclusive world access: {}", andDecrement - 1);
 			}
-		}
-    }
-
-    public void unparkThreadWaitingOnExclusiveWorldAccess() {
-        Thread thread = this.threadWithExclusiveWorldAccess.get();
-        if (thread != null) {
-            LockSupport.unpark(thread);
+			this.threadWithExclusiveWorldAccess.set(null);
+			int levelsToRelease = this.numberOfLevels();
+			if (this.isWorldThread(thread)) {
+				levelsToRelease--;
+			}
+			this.giveBackLevelAccess.release(levelsToRelease);
         }
     }
 
@@ -308,7 +326,6 @@ public class WorldThreadingManager {
 		if (this.crashReport == null) {
 			this.crashReport = crashReport;
 			this.tickBarrier.forceTermination(); //Destroy the tick barrier to prevent all threads from entering a new tick and to wake up the main thread.
-            this.unparkThreadWaitingOnExclusiveWorldAccess();
             //The main thread will call throwCrashReportIfPresent()
 		} else {
 			this.crashReport.addCategory("Crashing while already crashing").setDetail("Crash Report", crashReport);
