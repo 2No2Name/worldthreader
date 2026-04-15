@@ -44,6 +44,7 @@ public class ServerWorldTicking {
                 }
             }
         }
+        worldThreadingManager.releaseLevel();
         ThreadLocals.WORLD_THREAD_MINECRAFT_SERVER_ACCESS.remove();
     }
 

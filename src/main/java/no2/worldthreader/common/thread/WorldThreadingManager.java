@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import net.minecraft.CrashReport;
+import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -26,7 +27,6 @@ import java.util.concurrent.Phaser;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.LockSupport;
 
 import static no2.worldthreader.init.ModGameRules.INITIAL_FALSE;
 
@@ -44,7 +44,7 @@ public class WorldThreadingManager {
 	private final AtomicInteger threadsRequestingExclusiveWorldAccess = new AtomicInteger();
 
 	private final Semaphore yieldingLevels = new Semaphore(0); //Usually 0, unless threads are currently trying to give the world to another thread which hasn't acquired it yet
-	private final Semaphore giveBackLevelAccess = new Semaphore(0); //Usually 0, unless a thread is currently giving back its exclusive world access to the world threads
+	private final Semaphore reacquireLevels = new Semaphore(0); //Usually 0, unless a thread is currently giving back its exclusive world access to the world threads
 
 
 	//This variable is only modified by the owner of the permit from the semaphore (using the semaphore like a mutex)
@@ -184,7 +184,7 @@ public class WorldThreadingManager {
 		}
 	}
 
-	private void releaseLevel() {
+	public void releaseLevel() {
 		if (!this.isWorldThread(Thread.currentThread())) {
 			throw new IllegalCallerException("Only level threads can release their level for other threads!");
 		}
@@ -202,7 +202,7 @@ public class WorldThreadingManager {
 			}
 			//If tryAcquire didn't work, it is guaranteed that we can reacquire below, since some other thread must have taken exclusive access
 		}
-		this.giveBackLevelAccess.acquireUninterruptibly();
+		this.reacquireLevels.acquireUninterruptibly();
 	}
 
 	/**
@@ -260,18 +260,11 @@ public class WorldThreadingManager {
 		}
 
 		this.threadsRequestingExclusiveWorldAccess.getAndIncrement();
-		thread = this.threadWithExclusiveWorldAccess.get();
-		if (thread != null) {
-            //If another thread is waiting for exclusive access already, unpark it to allow it to use this thread's level
-			LockSupport.unpark(thread);
-		}
-
-		int levelsToAcquire = this.numberOfLevels();
-		if (this.isWorldThread(thread)) {
-			levelsToAcquire--;
+		if (this.isWorldThread(currentThread)) {
+			this.yieldingLevels.release(); //Release our own level to avoid deadlocks
 		}
 		//If multiple threads try to acquire exclusive world access, all but one will block here
-		this.yieldingLevels.acquireUninterruptibly(levelsToAcquire);
+		this.yieldingLevels.acquireUninterruptibly(this.numberOfLevels()); //Also have to acquire our own level after releasing before
 
 
 		this.threadWithExclusiveWorldAccess.set(currentThread);
@@ -308,17 +301,27 @@ public class WorldThreadingManager {
 		Thread thread = this.threadWithExclusiveWorldAccess.get();
 		if (thread != null && thread == Thread.currentThread()) {
 			this.resetOwnershipOfAllThreadOwnedObjects();
-			int andDecrement = this.threadsRequestingExclusiveWorldAccess.getAndDecrement();
+			int threadsRequestingExclusiveAccess = this.threadsRequestingExclusiveWorldAccess.decrementAndGet();
 			if (DEBUG) {
 				WorldThreaderMod.LOGGER.info("Thread {} releasing exclusive world access", thread.getName());
-				WorldThreaderMod.LOGGER.info("Other threads waiting for exclusive world access: {}", andDecrement - 1);
+				WorldThreaderMod.LOGGER.info("Other threads waiting for exclusive world access: {}", threadsRequestingExclusiveAccess);
 			}
 			this.threadWithExclusiveWorldAccess.set(null);
 			int levelsToRelease = this.numberOfLevels();
-			if (this.isWorldThread(thread)) {
-				levelsToRelease--;
+
+			if (threadsRequestingExclusiveAccess == 0) {
+				if (this.isWorldThread(thread)) {
+					levelsToRelease--;
+				}
+				//Give back levels to the level threads
+				this.reacquireLevels.release(levelsToRelease);
+			} else {
+				//Yield all levels again to allow waiting thread to progress
+				this.yieldingLevels.release(levelsToRelease);
+				if (this.isWorldThread(thread)) {
+					this.reacquireLevel();
+				}
 			}
-			this.giveBackLevelAccess.release(levelsToRelease);
         }
     }
 
@@ -334,17 +337,34 @@ public class WorldThreadingManager {
 
 	public void throwCrashIfPresent() {
 		if (this.crashReport != null) {
+			System.err.println("Server crash report created. Giving threads a chance to finish gracefully...");
 			//Give all world threads the opportunity to finish gracefully.
-			int threadsToJoin = this.worldThreads.size();
-			for (int i = 0; i < 2 && threadsToJoin > 0; i++) {
-				for (Thread thread : this.worldThreads.keySet()) {
-					try {
-						thread.join(1000);
-						threadsToJoin--;
-					} catch (InterruptedException ignored) {
-					}
+			this.worldThreads.keySet().removeIf(thread -> {
+				try {
+					thread.join(1000);
+				} catch (InterruptedException ignored) {
+
 				}
-				this.withinTickBarrier.forceTermination();
+				return !thread.isAlive();
+			});
+			this.withinTickBarrier.forceTermination();
+			this.worldThreads.keySet().removeIf(thread -> {
+				try {
+					thread.join(1000);
+				} catch (InterruptedException ignored) {
+
+				}
+				return !thread.isAlive();
+			});
+
+			if (!this.worldThreads.isEmpty()) {
+				CrashReportCategory levelThreadsNotFinishedGracefully = this.crashReport.addCategory("Level threads not finished gracefully");
+				this.worldThreads.forEach((thread, level) -> {
+					//Append to crash report
+					levelThreadsNotFinishedGracefully.setDetail("Level", level);
+					levelThreadsNotFinishedGracefully.setDetail("Thread", thread);
+					levelThreadsNotFinishedGracefully.setDetail("Stacktrace", thread.getStackTrace());
+				});
 			}
 			throw new ReportedException(this.crashReport);
 		}
