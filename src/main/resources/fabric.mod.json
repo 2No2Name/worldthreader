@@ -17,8 +17,7 @@
   "accessWidener": "worldthreader.accesswidener",
   "depends": {
     "minecraft": [
-      "26.1",
-      "26.1.1"
+      "26.1.x"
     ]
   }
 }

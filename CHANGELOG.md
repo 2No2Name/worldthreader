@@ -1,8 +1,7 @@
-Worldthreader 2.8.0 is the first release for Minecraft 26.1 and 26.1.1
+Worldthreader 2.8.1 is the first release for 26.1.2
 Please report any issues you encounter to the [issue tracker of worldthreader](https://github.com/2No2Name/worldthreader/issues). As worldthreader likely comes with massive mod compatibility issues, please do not report crashes and issues to other mods' issue trackers before confirming the issue without worldthreader.
 
 
 ## Changes
-- Update to Minecraft 26.1
-- Reduce exclusive world accesses from interdimensional projectiles
-- Reduce exclusive world accesses from interdimensional piglin anger
+- Update to Minecraft 26.1.2
+- Version lock to 26.1.x
