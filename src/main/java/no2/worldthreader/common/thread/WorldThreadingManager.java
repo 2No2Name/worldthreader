@@ -117,8 +117,11 @@ public class WorldThreadingManager {
 		return isMultithreadingAndCorrectThreadForWorld(newLevel) && ((ServerWorldExtended) newLevel).worldthreader$getTickPhase() == WorldThreaderTickPhase.RECOVER_FAILED_TELEPORTS;
 	}
 
-	public static WorldThreadingManager get(ServerLevel serverLevel) {
-		return ((MinecraftServerExtended) serverLevel.getServer()).worldthreader$getThreadingManager();
+	public static WorldThreadingManager get(Level level) {
+		if (level instanceof ServerLevel serverLevel) {
+			return ((MinecraftServerExtended) serverLevel.getServer()).worldthreader$getThreadingManager();
+		}
+		throw new IllegalArgumentException("Expected ServerLevel as argument!");
 	}
 
 	public boolean isMultiThreadedPhase() {

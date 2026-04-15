@@ -43,6 +43,7 @@
     "fixes.entity_reference.ServerLevelAccessor",
     "fixes.last_hurt_by_mob.LivingEntityMixin",
     "fixes.leash.LeashableMixin",
+    "safepoints.ServerLevelMixin",
     "thread_ownership.ServerChunkCacheMixin",
     "thread_ownership.WorldMixin",
     "threading_compatibility.EntityReferenceMixin",
