@@ -264,10 +264,23 @@ public class WorldThreadingManager {
 
 		this.threadsRequestingExclusiveWorldAccess.getAndIncrement();
 		if (this.isWorldThread(currentThread)) {
-			this.yieldingLevels.release(); //Release our own level to avoid deadlocks
+			this.yieldingLevels.release(); //Release our own level first to avoid deadlocks
 		}
-		//If multiple threads try to acquire exclusive world access, all but one will block here
-		this.yieldingLevels.acquireUninterruptibly(this.numberOfLevels()); //Also have to acquire our own level after releasing before
+		//In case other threads have not reacquired their level (e.g. due to being in a barrier), we have to acquire
+		// those as well.
+		int toAcquire = this.numberOfLevels();
+		//Non-atomic acquiring is fine here, since threadsRequestingExclusiveWorldAccess != 0 is ensured here, and other
+		// threads only release to the reacquireLevels semaphore when threadsRequestingExclusiveWorldAccess == 0
+		int availableReacquirePermits = this.reacquireLevels.availablePermits();
+		if (availableReacquirePermits > 0)
+			if (this.reacquireLevels.tryAcquire(availableReacquirePermits)) {
+				toAcquire -= availableReacquirePermits;
+			}
+
+		if (toAcquire > 0) {
+			//If multiple threads try to acquire exclusive world access, all but one will block here
+			this.yieldingLevels.acquireUninterruptibly(toAcquire); //Also have to acquire our own level after releasing before
+		}
 
 
 		this.threadWithExclusiveWorldAccess.set(currentThread);
@@ -327,6 +340,7 @@ public class WorldThreadingManager {
 			}
         }
     }
+
 
 	public synchronized void handleCrash(CrashReport crashReport) {
 		if (this.crashReport == null) {
