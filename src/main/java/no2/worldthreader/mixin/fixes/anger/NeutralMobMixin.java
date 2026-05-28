@@ -71,8 +71,8 @@ public interface NeutralMobMixin {
             method = "updatePersistentAnger", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;isCreative()Z")
     )
     private boolean isCreative(Player instance, Operation<Boolean> original, @Share("playerGameMode") LocalRef<GameType> gameModeRef) {
-        if (gameModeRef.get() == GameType.CREATIVE) {
-            return true;
+        if (gameModeRef.get() != null) {
+            return gameModeRef.get() == GameType.CREATIVE;
         }
         return original.call(instance);
     }
@@ -82,8 +82,8 @@ public interface NeutralMobMixin {
 
     )
     private boolean isSpectator(Player instance, Operation<Boolean> original, @Share("playerGameMode") LocalRef<GameType> gameModeRef) {
-        if (gameModeRef.get() == GameType.SPECTATOR) {
-            return true;
+        if (gameModeRef.get() != null) {
+            return gameModeRef.get() == GameType.SPECTATOR;
         }
         return original.call(instance);
     }
