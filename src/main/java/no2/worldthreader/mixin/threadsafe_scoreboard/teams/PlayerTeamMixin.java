@@ -1,22 +1,22 @@
 package no2.worldthreader.mixin.threadsafe_scoreboard.teams;
 
 import com.google.common.collect.ImmutableSet;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.Team;
+import net.minecraft.world.scores.TeamColor;
 import no2.worldthreader.common.scoreboard.MutablePlayerTeam;
 import no2.worldthreader.common.scoreboard.ThreadsafeScoreboard;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.*;
-
-import java.util.Collection;
-import java.util.Set;
-
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.scores.PlayerTeam;
-import net.minecraft.world.scores.Team;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
 
 @SuppressWarnings("NullableProblems")
 @Mixin(PlayerTeam.class)
@@ -112,8 +112,8 @@ public abstract class PlayerTeamMixin extends Team implements MutablePlayerTeam 
         this.ensureSafe();
     }
 
-    @Inject(method = "setColor", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/world/scores/PlayerTeam;color:Lnet/minecraft/ChatFormatting;"))
-    public void setColor(ChatFormatting color, CallbackInfo ci) {
+    @Inject(method = "setColor", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/world/scores/PlayerTeam;color:Ljava/util/Optional;"))
+    public void setColor(Optional<TeamColor> color, CallbackInfo ci) {
         this.ensureSafe();
     }
 }
