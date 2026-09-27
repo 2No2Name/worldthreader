@@ -3,7 +3,7 @@ import me.modmuss50.mpp.ReleaseType
 plugins {
     id 'net.fabricmc.fabric-loom' version '1.16-SNAPSHOT'
     id 'maven-publish'
-    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
+    id "me.modmuss50.mod-publish-plugin" version "2.1.0"
 }
 
 version = project.mod_version
@@ -150,6 +150,9 @@ publishMods {
         } else {
             minecraftVersions.add(project.property('minecraft_version').toString())
         }
+
+        client = true
+        server = true
     }
 
     // Modrinth options used by both Fabric and Forge
